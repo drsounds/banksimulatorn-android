@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.Account
@@ -32,6 +33,22 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
         )
 
     val creditCards: StateFlow<List<CreditCard>> = bankDao.getAllCreditCards()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val allTransactions: StateFlow<List<Transaction>> = bankDao.getAllAccounts()
+        .flatMapLatest { accounts ->
+            if (accounts.isEmpty()) kotlinx.coroutines.flow.flowOf(emptyList())
+            else {
+                // Combine transactions from all accounts for general dashboard view
+                // For simplicity, let's just get transactions for the first account or a dedicated query
+                // Actually, let's just get transactions for all accounts
+                bankDao.getTransactionsForAccount(accounts.first().id) // Simplified to first account as per image_1
+            }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

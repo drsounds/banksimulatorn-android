@@ -50,6 +50,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+import se.banksimulatorn.app.R
+
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
@@ -77,10 +80,10 @@ fun HistoryScreen(
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("Transaction History") },
+                            title = { Text(stringResource(R.string.transaction_history)) },
                             navigationIcon = {
                                 IconButton(onClick = onBack) {
-                                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                                 }
                             }
                         )
@@ -106,7 +109,7 @@ fun HistoryScreen(
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text(selectedAccount?.name ?: "Details") },
+                            title = { Text(selectedAccount?.name ?: stringResource(R.string.details)) },
                             navigationIcon = {
                                 if (navigator.canNavigateBack()) {
                                     IconButton(onClick = { 
@@ -114,7 +117,7 @@ fun HistoryScreen(
                                             navigator.navigateBack()
                                         }
                                     }) {
-                                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back to list")
+                                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back_to_list))
                                     }
                                 }
                             }
@@ -198,76 +201,76 @@ fun TransactionList(
                 tint = MaterialTheme.colorScheme.outline
             )
             Text(
-                "No transactions yet",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
-    } else {
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            items(transactions) { transaction ->
-                TransactionItem(transaction)
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            }
-        }
-    }
-}
-
-@Composable
-fun TransactionItem(transaction: Transaction) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
-    val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-    
-    ListItem(
-        headlineContent = { Text(transaction.merchant ?: transaction.description) },
-        supportingContent = { 
-            Column {
-                if (transaction.merchant != null) {
-                    Text(transaction.description)
-                }
-                Text(dateFormatter.format(Date(transaction.timestamp))) 
-            }
-        },
-        trailingContent = {
-            Text(
-                text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount),
-                color = if (transaction.amount > 0) 
-                    MaterialTheme.colorScheme.primary 
-                else 
-                    MaterialTheme.colorScheme.error,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        leadingContent = {
-            Icon(
-                imageVector = Icons.Rounded.History,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary
-            )
-        }
-    )
-}
-
-@Composable
-fun EmptyDetailState() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            Icons.Rounded.Info,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.outline
-        )
-        Text(
-            "Select an account to view history",
+            stringResource(R.string.no_transactions),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.outline
         )
     }
+} else {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        items(transactions) { transaction ->
+            TransactionItem(transaction)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        }
+    }
+}
+}
+
+@Composable
+fun TransactionItem(transaction: Transaction) {
+val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
+val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+
+ListItem(
+    headlineContent = { Text(transaction.merchant ?: transaction.description) },
+    supportingContent = { 
+        Column {
+            if (transaction.merchant != null) {
+                Text(transaction.description)
+            }
+            Text(dateFormatter.format(Date(transaction.timestamp))) 
+        }
+    },
+    trailingContent = {
+        Text(
+            text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount),
+            color = if (transaction.amount > 0) 
+                MaterialTheme.colorScheme.primary 
+            else 
+                MaterialTheme.colorScheme.error,
+            fontWeight = FontWeight.Bold
+        )
+    },
+    leadingContent = {
+        Icon(
+            imageVector = Icons.Rounded.History,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary
+        )
+    }
+)
+}
+
+@Composable
+fun EmptyDetailState() {
+Column(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+) {
+    Icon(
+        Icons.Rounded.Info,
+        contentDescription = null,
+        modifier = Modifier.size(64.dp),
+        tint = MaterialTheme.colorScheme.outline
+    )
+    Text(
+        stringResource(R.string.select_account),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.outline
+    )
+}
 }

@@ -21,8 +21,8 @@ import se.banksimulatorn.app.ui.dashboard.DashboardScreen
 import se.banksimulatorn.app.ui.dashboard.DashboardViewModel
 import se.banksimulatorn.app.ui.transactions.TransactionScreen
 import se.banksimulatorn.app.ui.transactions.TransactionViewModel
-import se.banksimulatorn.app.ui.history.HistoryScreen
-import se.banksimulatorn.app.ui.history.HistoryViewModel
+import se.banksimulatorn.app.ui.account.AccountDetailScreen
+import se.banksimulatorn.app.ui.account.AccountDetailViewModel
 import se.banksimulatorn.app.ui.credits.CreditDetailScreen
 import se.banksimulatorn.app.ui.credits.CreditDetailViewModel
 import se.banksimulatorn.app.ui.loans.LoanDetailScreen
@@ -43,6 +43,12 @@ class MainActivity : ComponentActivity() {
             BankingSimulatorTheme {
                 val backStack = rememberNavBackStack(Destination.Dashboard as NavKey)
                 
+                val popSafe = {
+                    if (backStack.size > 1) {
+                        backStack.removeLastOrNull()
+                    }
+                }
+
                 val entryProvider = remember {
                     entryProvider<NavKey> {
                         entry<Destination.Dashboard> {
@@ -52,10 +58,12 @@ class MainActivity : ComponentActivity() {
                             DashboardScreen(
                                 viewModel = dashboardViewModel,
                                 onAccountClick = { id ->
-                                    backStack.add(Destination.History(id))
+                                    backStack.add(Destination.AccountDetail(id))
                                 },
                                 onHistoryClick = {
-                                    backStack.add(Destination.History())
+                                    dashboardViewModel.accounts.value.firstOrNull()?.let {
+                                        backStack.add(Destination.AccountDetail(it.id))
+                                    }
                                 },
                                 onNewTransactionClick = { id ->
                                     backStack.add(Destination.TransactionSimulator(id))
@@ -77,20 +85,19 @@ class MainActivity : ComponentActivity() {
                             }
                             TransactionScreen(
                                 viewModel = transactionViewModel,
-                                onBack = { backStack.removeLastOrNull() }
+                                onBack = popSafe
                             )
                         }
-                        entry<Destination.History> { key ->
-                            val historyViewModel: HistoryViewModel = viewModel {
-                                HistoryViewModel(bankDao)
+                        entry<Destination.AccountDetail> { key ->
+                            val accountDetailViewModel: AccountDetailViewModel = viewModel {
+                                AccountDetailViewModel(key.accountId, bankDao)
                             }
-                            // Set initial selected account if provided
-                            LaunchedEffect(key.accountId) {
-                                key.accountId?.let { historyViewModel.selectAccount(it) }
-                            }
-                            HistoryScreen(
-                                viewModel = historyViewModel,
-                                onBack = { backStack.removeLastOrNull() }
+                            AccountDetailScreen(
+                                viewModel = accountDetailViewModel,
+                                onNewTransactionClick = { id ->
+                                    backStack.add(Destination.TransactionSimulator(id))
+                                },
+                                onBack = popSafe
                             )
                         }
                         entry<Destination.LoanDetail> { key ->
@@ -99,7 +106,7 @@ class MainActivity : ComponentActivity() {
                             }
                             LoanDetailScreen(
                                 viewModel = loanViewModel,
-                                onBack = { backStack.removeLastOrNull() }
+                                onBack = popSafe
                             )
                         }
                         entry<Destination.CreditDetail> { key ->
@@ -111,7 +118,7 @@ class MainActivity : ComponentActivity() {
                                 onSimulatePurchase = { id ->
                                     backStack.add(Destination.PurchaseSimulator(id))
                                 },
-                                onBack = { backStack.removeLastOrNull() }
+                                onBack = popSafe
                             )
                         }
                         entry<Destination.PurchaseSimulator> { key ->
@@ -120,7 +127,7 @@ class MainActivity : ComponentActivity() {
                             }
                             PurchaseScreen(
                                 viewModel = purchaseViewModel,
-                                onBack = { backStack.removeLastOrNull() }
+                                onBack = popSafe
                             )
                         }
                     }
@@ -128,6 +135,7 @@ class MainActivity : ComponentActivity() {
 
                 NavDisplay(
                     backStack = backStack,
+                    onBack = popSafe,
                     modifier = Modifier.fillMaxSize(),
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),

@@ -39,6 +39,9 @@ import se.banksimulatorn.app.data.CreditCard
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+import se.banksimulatorn.app.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreditDetailScreen(
@@ -54,13 +57,13 @@ fun CreditDetailScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Credit Card", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.credit_card), style = MaterialTheme.typography.labelMedium)
                         Text(card?.cardNumber ?: "", style = MaterialTheme.typography.titleMedium)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -84,13 +87,13 @@ fun CreditDetailScreen(
                         shape = MaterialTheme.shapes.medium
                     ) {
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            InfoRow("Credit Limit", currencyFormatter.format(card.creditLimit).replace("€", ""))
-                            InfoRow("Used credit", "-" + currencyFormatter.format(card.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
-                            InfoRow("Interest (12,5 %)", "-120,00") // Mock interest as per image
-                            InfoRow("Pending authorizations", "-" + currencyFormatter.format(card.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
+                            InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(card.creditLimit).replace("€", ""))
+                            InfoRow(stringResource(R.string.used_credit), "-" + currencyFormatter.format(card.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
+                            InfoRow(stringResource(R.string.interest_rate, "12,5"), "-120,00") 
+                            InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(card.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
                             
                             val available = card.creditLimit - card.usedCredit - card.pendingAuthorizations - 120.0
-                            InfoRow("Available amount", currencyFormatter.format(available).replace("€", ""), fontWeight = FontWeight.Bold)
+                            InfoRow(stringResource(R.string.available_amount), currencyFormatter.format(available).replace("€", ""), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -107,29 +110,29 @@ fun CreditDetailScreen(
                     ) {
                         Icon(Icons.Rounded.Add, contentDescription = null)
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text("Simulate purchase")
+                        Text(stringResource(R.string.simulate_purchase))
                     }
                 }
 
                 item {
-                    Text("Blocked", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.blocked), style = MaterialTheme.typography.labelLarge)
                 }
                 item {
                     CreditTransactionItem(
                         merchant = "Store",
-                        detail = "Reserved | MC ***-4242",
+                        detail = stringResource(R.string.reserved) + " | MC ***-4242",
                         amount = -2500.0,
                         isBlocked = true
                     )
                 }
 
                 item {
-                    Text("Latest transactions", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.latest_transactions), style = MaterialTheme.typography.labelLarge)
                 }
                 item {
                     CreditTransactionItem(
                         merchant = "H&M",
-                        detail = "Credit card purchase",
+                        detail = stringResource(R.string.credit_card_purchase),
                         date = "April 21st, 2026",
                         amount = -2500.0
                     )

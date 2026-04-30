@@ -11,7 +11,7 @@ sealed interface Destination : NavKey {
     data class TransactionSimulator(val accountId: Int) : Destination
 
     @Serializable
-    data class History(val accountId: Int? = null) : Destination
+    data class AccountDetail(val accountId: Int) : Destination
 
     @Serializable
     data class LoanDetail(val loanId: Int) : Destination

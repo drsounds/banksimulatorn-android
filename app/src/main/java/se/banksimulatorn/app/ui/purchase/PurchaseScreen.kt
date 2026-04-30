@@ -2,9 +2,6 @@ package se.banksimulatorn.app.ui.purchase
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -20,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -38,12 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import java.text.NumberFormat
-import java.util.Locale
+import se.banksimulatorn.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +77,7 @@ fun PurchaseScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Banking Simulator", style = MaterialTheme.typography.labelSmall) },
+                title = { Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall) },
                 actions = {
                     Button(
                         onClick = {
@@ -93,7 +92,12 @@ fun PurchaseScreen(
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("Charge", modifier = Modifier.padding(start = 4.dp))
+                        Text(stringResource(R.string.charge), modifier = Modifier.padding(start = 4.dp))
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -107,7 +111,7 @@ fun PurchaseScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Make simulated card charge",
+                stringResource(R.string.make_simulated_charge),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -132,7 +136,7 @@ fun PurchaseScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Merchant", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.merchant), style = MaterialTheme.typography.titleLarge)
                 OutlinedTextField(
                     value = merchant,
                     onValueChange = { merchant = it },
@@ -147,7 +151,7 @@ fun PurchaseScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Transaction name", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.transaction_name), style = MaterialTheme.typography.titleLarge)
                 OutlinedTextField(
                     value = transactionName,
                     onValueChange = { transactionName = it },
@@ -162,7 +166,7 @@ fun PurchaseScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Amount", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.amount), style = MaterialTheme.typography.titleLarge)
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { if (it.isEmpty() || it.replace(",", ".").toDoubleOrNull() != null) amountText = it },
@@ -174,7 +178,7 @@ fun PurchaseScreen(
                         unfocusedBorderColor = Color.Black,
                         focusedBorderColor = Color.Black
                     ),
-                    textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                    textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.End)
                 )
             }
         }

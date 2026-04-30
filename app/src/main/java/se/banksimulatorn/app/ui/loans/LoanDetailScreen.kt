@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+import se.banksimulatorn.app.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanDetailScreen(
@@ -46,13 +49,13 @@ fun LoanDetailScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Banking Simulator", style = MaterialTheme.typography.labelSmall)
-                        Text("Loan", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.loan), style = MaterialTheme.typography.titleMedium)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -79,11 +82,11 @@ fun LoanDetailScreen(
                             Text("9 9999-9999 0", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Balance", style = MaterialTheme.typography.bodyLarge)
+                                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
                                 Text("-" + currencyFormatter.format(l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Pending interest", style = MaterialTheme.typography.bodyLarge)
+                                Text(stringResource(R.string.pending_interest), style = MaterialTheme.typography.bodyLarge)
                                 Text("-" + currencyFormatter.format(l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                         }
@@ -91,7 +94,7 @@ fun LoanDetailScreen(
                 }
 
                 item {
-                    Text("Upcoming payment", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.upcoming_payment), style = MaterialTheme.typography.labelLarge)
                 }
                 item {
                     Card(
@@ -101,9 +104,9 @@ fun LoanDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Due " + l.nextPaymentDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                                Text(stringResource(R.string.due_date, l.nextPaymentDate), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                                 Box(modifier = Modifier.background(Color(0xFFD4B44F), MaterialTheme.shapes.extraSmall).padding(horizontal = 8.dp, vertical = 2.dp)) {
-                                    Text("Unpaid", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+                                    Text(stringResource(R.string.unpaid), style = MaterialTheme.typography.labelSmall, color = Color.Black)
                                 }
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -118,12 +121,12 @@ fun LoanDetailScreen(
                 }
 
                 item {
-                    Text("Latest transactions", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.latest_transactions), style = MaterialTheme.typography.labelLarge)
                 }
                 item {
                     LoanTransactionItem(
-                        title = "Installment",
-                        subtitle = "Payment",
+                        title = stringResource(R.string.installment),
+                        subtitle = stringResource(R.string.payment),
                         date = "March 28th, 2026",
                         amount = 14250.0,
                         isPositive = true
@@ -131,8 +134,8 @@ fun LoanDetailScreen(
                 }
                 item {
                     LoanTransactionItem(
-                        title = "Interest",
-                        subtitle = "Interest",
+                        title = stringResource(R.string.interest),
+                        subtitle = stringResource(R.string.interest),
                         date = "March 28th, 2026",
                         amount = -6500.0,
                         isPositive = false

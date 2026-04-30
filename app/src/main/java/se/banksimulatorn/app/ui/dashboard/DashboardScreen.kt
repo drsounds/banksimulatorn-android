@@ -1,25 +1,35 @@
 package se.banksimulatorn.app.ui.dashboard
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Savings
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -28,34 +38,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
-import java.text.NumberFormat
-import java.util.Locale
-
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.graphics.Color
-import se.banksimulatorn.app.data.Transaction
-import se.banksimulatorn.app.data.TransactionStatus
-import java.text.SimpleDateFormat
-import java.util.Date
-
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.Loan
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,13 +74,13 @@ fun DashboardScreen(
             LargeTopAppBar(
                 title = {
                     Text(
-                        "Banking Simulator",
+                        stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
                 actions = {
                     IconButton(onClick = onHistoryClick) {
-                        Icon(Icons.Rounded.History, contentDescription = "History")
+                        Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history))
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -123,7 +117,7 @@ fun DashboardScreen(
         ) {
             item {
                 Text(
-                    "Accounts",
+                    stringResource(R.string.accounts),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -144,13 +138,13 @@ fun DashboardScreen(
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = null)
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text("New purchase")
+                    Text(stringResource(R.string.new_purchase))
                 }
             }
 
             item {
                 Text(
-                    "Loans",
+                    stringResource(R.string.loans),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -161,7 +155,7 @@ fun DashboardScreen(
 
             item {
                 Text(
-                    "Credits",
+                    stringResource(R.string.credits),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -182,7 +176,7 @@ fun DashboardScreen(
                         modifier = Modifier.height(48.dp)
                     ) {
                         Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("New transaction", modifier = Modifier.padding(start = 4.dp))
+                        Text(stringResource(R.string.new_transaction), modifier = Modifier.padding(start = 4.dp))
                     }
                 }
             }
@@ -210,7 +204,12 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(account.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                        Text(
+                            if (account.name == "Checking") stringResource(R.string.deposit) // Using deposit as a placeholder if name matches seed
+                            else if (account.name == "Savings") stringResource(R.string.savings_account)
+                            else account.name,
+                            style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
+                        )
                         Text(
                             currencyFormatter.format(account.balance - account.blockedAmount).replace("€", ""),
                             style = MaterialTheme.typography.headlineSmall,
@@ -222,7 +221,7 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            if (account.type == AccountType.CHECKING) "Private account" else "Savings account",
+                            if (account.type == AccountType.CHECKING) stringResource(R.string.private_account) else stringResource(R.string.savings_account),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
@@ -256,7 +255,11 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(loan.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                Text(
+                    if (loan.name == "Mortgage") stringResource(R.string.loan)
+                    else loan.name,
+                    style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
+                )
                 Text(
                     "-" + currencyFormatter.format(loan.balance).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
@@ -267,9 +270,13 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(loan.type, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 Text(
-                    "Next payment: " + currencyFormatter.format(loan.nextPaymentAmount).replace("€", ""),
+                    if (loan.type == "Mortgage loan") stringResource(R.string.loan)
+                    else loan.type,
+                    style = MaterialTheme.typography.bodyMedium, color = Color.Gray
+                )
+                Text(
+                    stringResource(R.string.upcoming_payment) + ": " + currencyFormatter.format(loan.nextPaymentAmount).replace("€", ""),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )

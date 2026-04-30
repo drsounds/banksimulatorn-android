@@ -52,6 +52,9 @@ import se.banksimulatorn.app.data.TransactionType
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+import se.banksimulatorn.app.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionScreen(
@@ -89,10 +92,10 @@ fun TransactionScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Transaction Simulator") },
+                title = { Text(stringResource(R.string.new_transaction)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -110,12 +113,14 @@ fun TransactionScreen(
             account?.let {
                 Column {
                     Text(
-                        text = it.name,
+                        text = if (it.name == "Checking") stringResource(R.string.deposit) 
+                               else if (it.name == "Savings") stringResource(R.string.savings_account)
+                               else it.name,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = "Current Balance: ${currencyFormatter.format(it.balance)}",
+                        text = stringResource(R.string.balance) + ": ${currencyFormatter.format(it.balance)}",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -125,11 +130,12 @@ fun TransactionScreen(
             // Transaction Type Selector
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 val types = listOf(
-                    TransactionType.DEPOSIT to Icons.Rounded.Add,
-                    TransactionType.WITHDRAWAL to Icons.Rounded.Remove,
-                    TransactionType.TRANSFER to Icons.Rounded.SwapHoriz
+                    TransactionType.DEPOSIT to Icons.Rounded.Add to R.string.deposit,
+                    TransactionType.WITHDRAWAL to Icons.Rounded.Remove to R.string.withdraw,
+                    TransactionType.TRANSFER to Icons.Rounded.SwapHoriz to R.string.transfer
                 )
-                types.forEachIndexed { index, (type, icon) ->
+                types.forEachIndexed { index, (pair, stringRes) ->
+                    val (type, icon) = pair
                     SegmentedButton(
                         selected = selectedType == type,
                         onClick = { selectedType = type },
@@ -140,7 +146,7 @@ fun TransactionScreen(
                             }
                         }
                     ) {
-                        Text(type.name.lowercase().replaceFirstChar { it.uppercase() })
+                        Text(stringResource(stringRes))
                     }
                 }
             }
@@ -160,14 +166,14 @@ fun TransactionScreen(
                     val selectedAccount = filteredAccounts.find { it.id == targetAccountId }
 
                     OutlinedTextField(
-                        value = selectedAccount?.name ?: "Select Target Account",
+                        value = selectedAccount?.name ?: stringResource(R.string.select_account),
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
-                        label = { Text("Transfer to") }
+                        label = { Text(stringResource(R.string.transfer_to)) }
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -190,7 +196,7 @@ fun TransactionScreen(
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) amountText = it },
-                label = { Text("Amount") },
+                label = { Text(stringResource(R.string.amount)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 prefix = { Text("$ ") },
@@ -201,7 +207,7 @@ fun TransactionScreen(
             OutlinedTextField(
                 value = descriptionText,
                 onValueChange = { descriptionText = it },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.transaction_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("What's this for?") }
             )
@@ -231,8 +237,13 @@ fun TransactionScreen(
                     }
                 )
             ) {
+                val typeString = stringResource(when (selectedType) {
+                    TransactionType.DEPOSIT -> R.string.deposit
+                    TransactionType.WITHDRAWAL -> R.string.withdraw
+                    TransactionType.TRANSFER -> R.string.transfer
+                })
                 Text(
-                    text = "Confirm ${selectedType.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    text = stringResource(R.string.confirm_transaction, typeString),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
