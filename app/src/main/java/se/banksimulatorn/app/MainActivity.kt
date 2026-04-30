@@ -49,6 +49,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onHistoryClick = {
                                     backStack.add(Destination.History)
+                                },
+                                onNewTransactionClick = { id ->
+                                    backStack.add(Destination.TransactionSimulator(id))
                                 }
                             )
                         }

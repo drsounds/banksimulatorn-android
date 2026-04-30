@@ -222,8 +222,15 @@ fun TransactionItem(transaction: Transaction) {
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
     
     ListItem(
-        headlineContent = { Text(transaction.description) },
-        supportingContent = { Text(dateFormatter.format(Date(transaction.timestamp))) },
+        headlineContent = { Text(transaction.merchant ?: transaction.description) },
+        supportingContent = { 
+            Column {
+                if (transaction.merchant != null) {
+                    Text(transaction.description)
+                }
+                Text(dateFormatter.format(Date(transaction.timestamp))) 
+            }
+        },
         trailingContent = {
             Text(
                 text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount),

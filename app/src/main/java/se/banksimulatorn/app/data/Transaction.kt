@@ -21,8 +21,15 @@ data class Transaction(
     val amount: Double,
     val timestamp: Long,
     val description: String,
+    val merchant: String? = null,
+    val status: TransactionStatus = TransactionStatus.COMPLETED,
+    val cardNumber: String? = null,
     val type: TransactionType
 )
+
+enum class TransactionStatus {
+    PENDING, COMPLETED, BLOCKED
+}
 
 enum class TransactionType {
     DEPOSIT, WITHDRAWAL, TRANSFER

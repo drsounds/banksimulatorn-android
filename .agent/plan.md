@@ -1,30 +1,35 @@
 # Project Plan
 
-Banking Simulator app development with Material 3, Jetpack Compose, and adaptive layouts.
+Banking Simulator app development with updated UI matching the provided design.
 
 ## Project Brief
 
 # Project Brief: Banking Simulator
-
-A robust and energetic Android application designed to simulate personal banking experiences. This MVP focuses on core financial interactions with a modern, adaptive interface following Material Design 3 guidelines.
+age 
+A sophisticated personal finance simulator focused on real-time balance tracking and transaction management. This MVP replicates a professional banking environment with a clear, data-driven interface that adapts to any screen size.
 
 ## Features
 
-*   **Account Dashboard**: A comprehensive overview of simulated checking and savings accounts, displaying real-time balance updates and account statuses.
-*   **Transaction Simulator**: An interactive interface to perform mock transfers, deposits, and withdrawals, allowing users to see immediate impacts on their balances.
-*   **Adaptive History View**: A detailed list of transaction history that utilizes a list-detail pattern on larger screens to show specific transaction metadata.
-*   **Dynamic UI Themes**: Implementation of a vibrant, Material 3 color scheme that adapts to light and dark modes, emphasizing a high-energy financial management aesthetic.
+*   **Detailed Account Overview**: Displays a comprehensive breakdown of account finances, including total Balance, Blocked amounts (reserved funds), and the actual Available balance.
+*   **Transaction Simulator**: Includes a prominent "+ New transaction" action to trigger mock financial entries and update account states dynamically.
+*   **Pending & Blocked Tracking**: A dedicated section to monitor "Blocked" transactions, showing merchant names (e.g., ICA) and masked card information for reserved funds.
+*   **Categorized History**: A "Latest transactions" list providing clear visibility into past spending with merchant details, color-coded amounts (red/green), and transaction dates.
+*   **Adaptive Financial Layout**: Utilizes a state-driven architecture to transition between a single-column mobile view and a multi-pane tablet layout for deeper transaction analysis.
 
 ## High-Level Technical Stack
 
-*   **Kotlin**: The primary programming language for concise and safe app logic.
-*   **Jetpack Compose**: A modern toolkit for building the native UI with Material 3 components and full edge-to-edge support.
-*   **Jetpack Navigation 3**: A state-driven navigation framework to manage the application's flow and deep linking.
-*   **Compose Material Adaptive**: Used to implement flexible layouts (like `ListDetailPaneScaffold`) that adjust seamlessly across phones, foldables, and tablets.
-*   **Kotlin Coroutines & Flow**: For managing asynchronous state updates and simulating real-time financial data streams.
+*   **Kotlin**: Language for robust, type-safe application logic.
+*   **Jetpack Compose**: For building a modern, Material 3-compliant UI with full edge-to-edge support.
+*   **Jetpack Navigation 3**: A state-driven navigation framework to manage the app's screens and UI states.
+*   **Compose Material Adaptive**: To implement responsive layouts that seamlessly handle various form factors using the list-detail pattern.
+*   **Kotlin Coroutines**: For handling asynchronous state updates and simulating network-like transaction processing.
+
+## UI Design Image
+
+![UI Design](/home/alecca/AndroidStudioProjects/BankingSimulator2/input_images/image_0.png)
 
 ## Implementation Steps
-**Total Duration:** 20m 27s
+**Total Duration:** 25m 49s
 
 ### Task_1_Foundation: Setup Room database for accounts/transactions, and define the Material 3 Vibrant Theme with Edge-to-Edge support.
 - **Status:** COMPLETED
@@ -57,24 +62,36 @@ A robust and energetic Android application designed to simulate personal banking
 ### Task_4_Adaptive_History: Implement the Adaptive Transaction History view using ListDetailPaneScaffold.
 - **Status:** COMPLETED
 - **Updates:** - Implemented HistoryScreen using ListDetailPaneScaffold for adaptive layouts.
-- Integrated HistoryViewModel to fetch and display transaction history reactively.
-- Added Navigation 3 support for the History screen.
-- Used high-energy visual cues for transaction types (green for deposits, red for withdrawals).
-- Added navigation shortcut to History from Dashboard.
-- Project builds successfully.
 - **Acceptance Criteria:**
   - Transaction history list implemented
   - List-Detail pattern works on tablets/foldables
   - Responsive single-pane view on phones
 - **Duration:** 2m 54s
 
-### Task_5_Polish_Verify: Create an adaptive app icon, perform final UI polish, and Run & Verify the application.
+### Task_5_Redesign_UI_Data: Update Room database schema for blocked amounts/merchants and redesign the Dashboard/History UI to match the provided banking design.
+- **Status:** COMPLETED
+- **Updates:** - Updated Room entities: Account (added blockedAmount, accountNumber) and Transaction (added merchant, status, cardNumber).
+- Redesigned Dashboard UI to match the provided design:
+    - Implemented Detailed Balance Card with red/green amount highlights.
+    - Added prominent yellowish-gold "+ New transaction" button.
+    - Implemented "Blocked" and "Latest transactions" sections with categorized items.
+- Linked "+ New transaction" button to the simulator.
+- Seeded database with mock data matching the design.
+- Maintained M3 and Edge-to-Edge standards.
+- Project builds successfully.
+- **Acceptance Criteria:**
+  - Room entities updated (Account.blockedAmount, Transaction.merchant, Transaction.status)
+  - Dashboard UI features Balance Card, New Transaction button, and Blocked/Latest sections
+  - New transaction button successfully triggers existing simulator form
+  - The implemented UI must match the design provided in /home/alecca/AndroidStudioProjects/BankingSimulator2/input_images/image_0.png
+- **Duration:** 5m 22s
+
+### Task_6_Polish_Verify: Create adaptive app icon, finalize vibrant M3 aesthetic, and perform Run & Verify.
 - **Status:** IN_PROGRESS
 - **Acceptance Criteria:**
   - Adaptive app icon created and applied
-  - Vibrant energetic aesthetic consistent across all screens
-  - App does not crash during use
-  - Build pass and all existing tests pass
-  - Verify application stability and requirement alignment
-- **StartTime:** 2026-04-30 12:29:00 CEST
+  - App does not crash, build passes, and all existing tests pass
+  - Verify application stability and alignment with user requirements
+  - The implemented UI must match the design provided in /home/alecca/AndroidStudioProjects/BankingSimulator2/input_images/image_0.png
+- **StartTime:** 2026-04-30 13:23:07 CEST
 
