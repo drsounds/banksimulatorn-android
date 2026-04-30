@@ -32,4 +32,33 @@ interface BankDao {
         insertTransaction(transaction)
         updateAccount(account)
     }
+
+    // Loans
+    @Query("SELECT * FROM loans")
+    fun getAllLoans(): Flow<List<Loan>>
+
+    @Query("SELECT * FROM loans WHERE id = :id")
+    suspend fun getLoanById(id: Int): Loan?
+
+    @Insert
+    suspend fun insertLoan(loan: Loan)
+
+    // Credit Cards
+    @Query("SELECT * FROM credit_cards")
+    fun getAllCreditCards(): Flow<List<CreditCard>>
+
+    @Query("SELECT * FROM credit_cards WHERE id = :id")
+    suspend fun getCreditCardById(id: Int): CreditCard?
+
+    @Insert
+    suspend fun insertCreditCard(creditCard: CreditCard)
+
+    @Update
+    suspend fun updateCreditCard(creditCard: CreditCard)
+
+    @RoomTransaction
+    suspend fun performCreditTransaction(transaction: Transaction, card: CreditCard) {
+        insertTransaction(transaction)
+        updateCreditCard(card)
+    }
 }

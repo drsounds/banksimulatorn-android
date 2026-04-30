@@ -36,6 +36,7 @@ import se.banksimulatorn.app.data.AccountType
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -49,6 +50,13 @@ import se.banksimulatorn.app.data.TransactionStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import se.banksimulatorn.app.data.CreditCard
+import se.banksimulatorn.app.data.Loan
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
@@ -56,9 +64,14 @@ fun DashboardScreen(
     onAccountClick: (Int) -> Unit,
     onHistoryClick: () -> Unit,
     onNewTransactionClick: (Int) -> Unit,
+    onNewPurchaseClick: (Int) -> Unit,
+    onLoanClick: (Int) -> Unit,
+    onCreditClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val accounts by viewModel.accounts.collectAsState()
+    val loans by viewModel.loans.collectAsState()
+    val creditCards by viewModel.creditCards.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -82,19 +95,31 @@ fun DashboardScreen(
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { },
+                    icon = { Icon(Icons.Rounded.Home, contentDescription = null) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { },
+                    icon = { Icon(Icons.Rounded.Person, contentDescription = null) }
+                )
+            }
         }
     ) { innerPadding ->
-        val currentAccount = accounts.firstOrNull() // Simplify for design
-        
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding() + 16.dp
+                bottom = innerPadding.calculateBottomPadding() + 80.dp // Space for the floating button
             ),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Text(
@@ -102,16 +127,55 @@ fun DashboardScreen(
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                
-                if (currentAccount != null) {
-                    BalanceCard(account = currentAccount)
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
+                AccountsUnifiedCard(accounts = accounts, onAccountClick = onAccountClick)
+            }
+
+            item {
+                Button(
+                    onClick = { creditCards.firstOrNull()?.let { onNewPurchaseClick(it.id) } },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD4B44F),
+                        contentColor = Color.Black
+                    ),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Icon(Icons.Rounded.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("New purchase")
+                }
+            }
+
+            item {
+                Text(
+                    "Loans",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            items(loans) { loan ->
+                LoanCard(loan = loan, onClick = { onLoanClick(loan.id) })
+            }
+
+            item {
+                Text(
+                    "Credits",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            items(creditCards) { card ->
+                CreditCardItem(card = card, onClick = { onCreditClick(card.id) })
+            }
+
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Button(
-                        onClick = { onNewTransactionClick(currentAccount.id) },
+                        onClick = { accounts.firstOrNull()?.let { onNewTransactionClick(it.id) } },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD4B44F), // Gold/Yellowish
+                            containerColor = Color(0xFFD4B44F),
                             contentColor = Color.Black
                         ),
                         shape = MaterialTheme.shapes.extraLarge,
@@ -122,93 +186,68 @@ fun DashboardScreen(
                     }
                 }
             }
-
-            // Real data would come from ViewModel, using mock logic for now to match UI
-            item {
-                Text(
-                    "Blocked",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                // Filtered transactions for current account with status BLOCKED/PENDING
-                TransactionItemDesign(
-                    merchant = "ICA",
-                    detail = "Reserved | MC ***-5195",
-                    amount = -250.0,
-                    isBlocked = true
-                )
-            }
-
-            item {
-                Text(
-                    "Latest transactions",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                TransactionItemDesign(
-                    merchant = "H&M",
-                    detail = "Credit card purchase",
-                    date = "April 21st, 2026",
-                    amount = -1289.0
-                )
-            }
         }
     }
 }
 
 @Composable
-fun BalanceCard(account: Account) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY) // Looks like German format in image
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE0E4E1) // Light grey/greenish
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                account.accountNumber,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
-            )
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Balance", style = MaterialTheme.typography.bodyLarge)
-                Text(currencyFormatter.format(account.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge)
-            }
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Blocked amount", style = MaterialTheme.typography.bodyLarge)
-                Text("-" + currencyFormatter.format(account.blockedAmount).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
-            }
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Available amount", style = MaterialTheme.typography.bodyLarge)
-                val available = account.balance - account.blockedAmount
-                Text(currencyFormatter.format(available).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFF006C4C))
-            }
-        }
-    }
-}
-
-@Composable
-fun TransactionItemDesign(
-    merchant: String,
-    detail: String,
-    date: String? = null,
-    amount: Double,
-    isBlocked: Boolean = false
-) {
+fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
-    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1)),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            accounts.forEachIndexed { index, account ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAccountClick(account.id) }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(account.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                        Text(
+                            currencyFormatter.format(account.balance - account.blockedAmount).replace("€", ""),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = if (account.balance - account.blockedAmount > 0) Color(0xFF006C4C) else Color(0xFFBA1A1A)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            if (account.type == AccountType.CHECKING) "Private account" else "Savings account",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                        Text(
+                            currencyFormatter.format(account.balance).replace("€", ""),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
+                }
+                if (index < accounts.size - 1) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.LightGray.copy(alpha = 0.5f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LoanCard(loan: Loan, onClick: () -> Unit) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF2E6E1)), // Slightly pinkish/beige
         shape = MaterialTheme.shapes.medium
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -217,21 +256,60 @@ fun TransactionItemDesign(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(merchant, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal)
+                Text(loan.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
                 Text(
-                    currencyFormatter.format(amount).replace("€", ""),
+                    "-" + currencyFormatter.format(loan.balance).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = if (amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
+                    color = Color(0xFFBA1A1A)
                 )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(detail, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                if (date != null) {
-                    Text(date, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                }
+                Text(loan.type, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text(
+                    "Next payment: " + currencyFormatter.format(loan.nextPaymentAmount).replace("€", ""),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(card.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                Text(
+                    "-" + currencyFormatter.format(card.usedCredit).replace("€", ""),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color(0xFFBA1A1A)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(card.cardNumber, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text(
+                    currencyFormatter.format(card.creditLimit).replace("€", ""),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
             }
         }
     }

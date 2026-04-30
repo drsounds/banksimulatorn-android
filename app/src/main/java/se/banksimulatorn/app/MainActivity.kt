@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +23,12 @@ import se.banksimulatorn.app.ui.transactions.TransactionScreen
 import se.banksimulatorn.app.ui.transactions.TransactionViewModel
 import se.banksimulatorn.app.ui.history.HistoryScreen
 import se.banksimulatorn.app.ui.history.HistoryViewModel
+import se.banksimulatorn.app.ui.credits.CreditDetailScreen
+import se.banksimulatorn.app.ui.credits.CreditDetailViewModel
+import se.banksimulatorn.app.ui.loans.LoanDetailScreen
+import se.banksimulatorn.app.ui.loans.LoanDetailViewModel
+import se.banksimulatorn.app.ui.purchase.PurchaseScreen
+import se.banksimulatorn.app.ui.purchase.PurchaseViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
 
 class MainActivity : ComponentActivity() {
@@ -45,13 +52,22 @@ class MainActivity : ComponentActivity() {
                             DashboardScreen(
                                 viewModel = dashboardViewModel,
                                 onAccountClick = { id ->
-                                    backStack.add(Destination.TransactionSimulator(id))
+                                    backStack.add(Destination.History(id))
                                 },
                                 onHistoryClick = {
-                                    backStack.add(Destination.History)
+                                    backStack.add(Destination.History())
                                 },
                                 onNewTransactionClick = { id ->
                                     backStack.add(Destination.TransactionSimulator(id))
+                                },
+                                onNewPurchaseClick = { id ->
+                                    backStack.add(Destination.PurchaseSimulator(id))
+                                },
+                                onLoanClick = { id ->
+                                    backStack.add(Destination.LoanDetail(id))
+                                },
+                                onCreditClick = { id ->
+                                    backStack.add(Destination.CreditDetail(id))
                                 }
                             )
                         }
@@ -64,12 +80,46 @@ class MainActivity : ComponentActivity() {
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }
-                        entry<Destination.History> {
+                        entry<Destination.History> { key ->
                             val historyViewModel: HistoryViewModel = viewModel {
                                 HistoryViewModel(bankDao)
                             }
+                            // Set initial selected account if provided
+                            LaunchedEffect(key.accountId) {
+                                key.accountId?.let { historyViewModel.selectAccount(it) }
+                            }
                             HistoryScreen(
                                 viewModel = historyViewModel,
+                                onBack = { backStack.removeLastOrNull() }
+                            )
+                        }
+                        entry<Destination.LoanDetail> { key ->
+                            val loanViewModel: LoanDetailViewModel = viewModel {
+                                LoanDetailViewModel(key.loanId, bankDao)
+                            }
+                            LoanDetailScreen(
+                                viewModel = loanViewModel,
+                                onBack = { backStack.removeLastOrNull() }
+                            )
+                        }
+                        entry<Destination.CreditDetail> { key ->
+                            val creditViewModel: CreditDetailViewModel = viewModel {
+                                CreditDetailViewModel(key.cardId, bankDao)
+                            }
+                            CreditDetailScreen(
+                                viewModel = creditViewModel,
+                                onSimulatePurchase = { id ->
+                                    backStack.add(Destination.PurchaseSimulator(id))
+                                },
+                                onBack = { backStack.removeLastOrNull() }
+                            )
+                        }
+                        entry<Destination.PurchaseSimulator> { key ->
+                            val purchaseViewModel: PurchaseViewModel = viewModel {
+                                PurchaseViewModel(key.cardId, bankDao)
+                            }
+                            PurchaseScreen(
+                                viewModel = purchaseViewModel,
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }

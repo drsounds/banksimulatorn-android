@@ -6,7 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [Account::class, Transaction::class], version = 2, exportSchema = false)
+@Database(
+    entities = [Account::class, Transaction::class, Loan::class, CreditCard::class],
+    version = 3,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class BankDatabase : RoomDatabase() {
     abstract fun bankDao(): BankDao

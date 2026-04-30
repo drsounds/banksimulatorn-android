@@ -1,0 +1,184 @@
+package se.banksimulatorn.app.ui.loans
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import java.text.NumberFormat
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoanDetailScreen(
+    viewModel: LoanDetailViewModel,
+    onBack: () -> Unit
+) {
+    val loan by viewModel.loan.collectAsState()
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Banking Simulator", style = MaterialTheme.typography.labelSmall)
+                        Text("Loan", style = MaterialTheme.typography.titleMedium)
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        loan?.let { l ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF2E6E1)),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text("9 9999-9999 0", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                            
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Balance", style = MaterialTheme.typography.bodyLarge)
+                                Text("-" + currencyFormatter.format(l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Pending interest", style = MaterialTheme.typography.bodyLarge)
+                                Text("-" + currencyFormatter.format(l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Text("Upcoming payment", style = MaterialTheme.typography.labelLarge)
+                }
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1).copy(alpha = 0.5f)),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("Due " + l.nextPaymentDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                                Box(modifier = Modifier.background(Color(0xFFD4B44F), MaterialTheme.shapes.extraSmall).padding(horizontal = 8.dp, vertical = 2.dp)) {
+                                    Text("Unpaid", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+                                }
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("June 30th", style = MaterialTheme.typography.headlineLarge, color = Color(0xFF2E4053))
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(currencyFormatter.format(l.nextPaymentAmount).replace("€", ""), style = MaterialTheme.typography.headlineLarge, color = Color(0xFF2E4053))
+                                    Text("6 550,00", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Text("Latest transactions", style = MaterialTheme.typography.labelLarge)
+                }
+                item {
+                    LoanTransactionItem(
+                        title = "Installment",
+                        subtitle = "Payment",
+                        date = "March 28th, 2026",
+                        amount = 14250.0,
+                        isPositive = true
+                    )
+                }
+                item {
+                    LoanTransactionItem(
+                        title = "Interest",
+                        subtitle = "Interest",
+                        date = "March 28th, 2026",
+                        amount = -6500.0,
+                        isPositive = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LoanTransactionItem(
+    title: String,
+    subtitle: String,
+    date: String,
+    amount: Double,
+    isPositive: Boolean
+) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPositive) Color(0xFFE0E4E1) else Color(0xFFF2E6E1)
+        ),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(title, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                Text(
+                    (if (isPositive) "+" else "") + currencyFormatter.format(amount).replace("€", ""),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (isPositive) Color(0xFF006C4C) else Color(0xFFBA1A1A)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text(date, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            }
+        }
+    }
+}

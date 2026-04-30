@@ -4,20 +4,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Modern Bank Building Icon -->
+    <!-- Modern Shield & Currency Symbol for Trust and Stability -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M26,44 L54,24 L82,44 v4 h-56 z" /> <!-- Roof -->
+        android:pathData="M54,26 C44,26 34,29 28,34 v24 c0,15 11,29 26,34 c15,-5 26,-19 26,-34 V34 C74,29 64,26 54,26 Z" />
+
+    <!-- Stylized '$' or Banking Symbol cutout effect -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M32,50 h6 v22 h-6 z" /> <!-- Left Pillar -->
+        android:fillColor="#1A237E"
+        android:pathData="M54,40 v28 M46,48 h16 M46,60 h16" /> <!-- Minimalist representation of banking/data -->
+
+    <!-- Adding a subtle glow/accent circle to represent energy -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M51,50 h6 v22 h-6 z" /> <!-- Center Pillar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M70,50 h6 v22 h-6 z" /> <!-- Right Pillar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M26,72 h56 v6 h-56 z" /> <!-- Base -->
+        android:fillColor="#00E5FF"
+        android:pathData="M54,44 a10,10 0 1 0 0.001,0 Z"
+        android:fillAlpha="0.3" />
 </vector>

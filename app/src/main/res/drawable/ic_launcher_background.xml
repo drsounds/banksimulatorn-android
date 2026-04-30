@@ -13,8 +13,8 @@
                 android:endX="108"
                 android:endY="108"
                 android:type="linear">
-                <item android:offset="0" android:color="#3D5AFE" />
-                <item android:offset="1" android:color="#00B0FF" />
+                <item android:offset="0" android:color="#1A237E" /> <!-- Deep Indigo -->
+                <item android:offset="1" android:color="#536DFE" /> <!-- Vibrant Indigo -->
             </gradient>
         </aapt:attr>
     </path>
