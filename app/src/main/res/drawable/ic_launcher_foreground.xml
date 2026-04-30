@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Modern Bank Building Icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,44 L54,24 L82,44 v4 h-56 z" /> <!-- Roof -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,50 h6 v22 h-6 z" /> <!-- Left Pillar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51,50 h6 v22 h-6 z" /> <!-- Center Pillar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,50 h6 v22 h-6 z" /> <!-- Right Pillar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,72 h56 v6 h-56 z" /> <!-- Base -->
+</vector>
