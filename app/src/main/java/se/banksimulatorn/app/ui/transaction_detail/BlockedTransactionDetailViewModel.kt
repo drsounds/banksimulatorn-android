@@ -37,9 +37,9 @@ class BlockedTransactionDetailViewModel(
     fun chargeNow() {
         viewModelScope.launch {
             val t = _transaction.value ?: return@launch
-            val cardId = t.creditCardId ?: return@launch
+            val revolvingId = t.revolvingCreditAccountId ?: return@launch
             try {
-                bankDao.chargeBlockedTransaction(t.id, cardId, t.amount, System.currentTimeMillis())
+                bankDao.chargeBlockedTransaction(t.id, revolvingId, t.amount, System.currentTimeMillis())
                 _uiEvent.emit(BlockedUiEvent.Success(R.string.success_charge))
                 _uiEvent.emit(BlockedUiEvent.NavigateBack)
             } catch (e: Exception) {
@@ -51,9 +51,9 @@ class BlockedTransactionDetailViewModel(
     fun releaseAmount() {
         viewModelScope.launch {
             val t = _transaction.value ?: return@launch
-            val cardId = t.creditCardId ?: return@launch
+            val revolvingId = t.revolvingCreditAccountId ?: return@launch
             try {
-                bankDao.releaseBlockedTransaction(t.id, cardId, t.amount)
+                bankDao.releaseBlockedTransaction(t.id, revolvingId, t.amount)
                 _uiEvent.emit(BlockedUiEvent.Success(R.string.success_release))
                 _uiEvent.emit(BlockedUiEvent.NavigateBack)
             } catch (e: Exception) {

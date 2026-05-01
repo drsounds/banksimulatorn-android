@@ -78,4 +78,14 @@
     <string name="interest_rate">Interest Rate (%)</string>
     <string name="save_settings">Save Settings</string>
     <string name="settings_saved">Settings saved</string>
+    <string name="currency">Currency</string>
+    <string name="reset_system">Reset System</string>
+    <string name="export_data">Export Data (JSON)</string>
+    <string name="import_data">Import Data (JSON)</string>
+    <string name="closed_accounts">Closed Accounts</string>
+    <string name="reopen">Reopen</string>
+    <string name="create_account">Create Account</string>
+    <string name="create_new">Create New</string>
+    <string name="home">Home</string>
+    <string name="settings">Settings</string>
 </resources>

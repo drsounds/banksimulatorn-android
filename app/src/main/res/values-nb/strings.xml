@@ -56,6 +56,8 @@
     <string name="payment">Betaling</string>
     <string name="error_amount_zero">Beløpet må være over null</string>
     <string name="error_insufficient_funds">Utilstrekkelig dekning</string>
+    <string name="success_transaction">Transaksjonen ble fullført</string>
+    <string name="success_charge">Belastningen var vellykket</string>
     <string name="transfer_to">Overfør til</string>
     <string name="interest_rate_display">Rente (%1$s %%)</string>
     <string name="error_charge_failed">Belastning feilet: %1$s</string>
@@ -72,8 +74,18 @@
     <string name="interest_capitalization_day">Kapitaliseringsdag (1&#8211;31)</string>
     <string name="invoice_cycle_day">Faktureringsdag (1&#8211;31)</string>
     <string name="bnpl_mode">BNPL-modus (Individuell avstemming)</string>
-    <string name="loan_fee">Månedlig lånegebyr</string>
+    <string name="loan_fee">Månedsavgift lån</string>
     <string name="interest_rate">Rentesats (%)</string>
     <string name="save_settings">Lagre innstillinger</string>
     <string name="settings_saved">Innstillinger lagret</string>
+    <string name="currency">Valuta</string>
+    <string name="reset_system">Nullstill systemet</string>
+    <string name="export_data">Eksporter data (JSON)</string>
+    <string name="import_data">Importer data (JSON)</string>
+    <string name="closed_accounts">Avsluttede kontoer</string>
+    <string name="reopen">Gjenåpne</string>
+    <string name="create_account">Opprett konto</string>
+    <string name="create_new">Opprett ny</string>
+    <string name="home">Hjem</string>
+    <string name="settings">Innstillinger</string>
 </resources>

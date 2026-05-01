@@ -14,9 +14,9 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = CreditCard::class,
+            entity = RevolvingCreditAccount::class,
             parentColumns = ["id"],
-            childColumns = ["creditCardId"],
+            childColumns = ["revolvingCreditAccountId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
@@ -24,7 +24,7 @@ import androidx.room.PrimaryKey
 data class Transaction(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val accountId: Int? = null,
-    val creditCardId: Int? = null,
+    val revolvingCreditAccountId: Int? = null,
     val amount: Double,
     val timestamp: Long,
     val description: String,

@@ -5,11 +5,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -34,11 +43,13 @@ import se.banksimulatorn.app.ui.purchase.PurchaseScreen
 import se.banksimulatorn.app.ui.purchase.PurchaseViewModel
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailScreen
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewModel
-import se.banksimulatorn.app.ui.settings.AccountSettingsScreen
-import se.banksimulatorn.app.ui.settings.AccountSettingsViewModel
+import se.banksimulatorn.app.ui.settings.*
+import se.banksimulatorn.app.ui.create.*
 import se.banksimulatorn.app.ui.timemachine.TimeMachineBar
 import se.banksimulatorn.app.ui.timemachine.TimeMachineViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
+import se.banksimulatorn.app.ui.history.HistoryScreen
+import se.banksimulatorn.app.ui.history.HistoryViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +70,51 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxSize()) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        Column {
+                            TimeMachineBar(
+                                viewModel = timeMachineViewModel,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            NavigationBar {
+                                val currentDestination = backStack.lastOrNull()
+                                NavigationBarItem(
+                                    selected = currentDestination == Destination.Dashboard,
+                                    onClick = { 
+                                        if (currentDestination != Destination.Dashboard) {
+                                            backStack.clear()
+                                            backStack.add(Destination.Dashboard) 
+                                        }
+                                    },
+                                    icon = { Icon(Icons.Rounded.Home, contentDescription = stringResource(R.string.home)) },
+                                    label = { Text(stringResource(R.string.home)) }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == Destination.History,
+                                    onClick = { 
+                                        if (currentDestination != Destination.History) {
+                                            backStack.add(Destination.History)
+                                        }
+                                    },
+                                    icon = { Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history)) },
+                                    label = { Text(stringResource(R.string.transaction_history)) }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == Destination.Settings,
+                                    onClick = { 
+                                        if (currentDestination != Destination.Settings) {
+                                            backStack.add(Destination.Settings)
+                                        }
+                                    },
+                                    icon = { Icon(Icons.Rounded.Person, contentDescription = stringResource(R.string.settings)) },
+                                    label = { Text(stringResource(R.string.settings)) }
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
                     val entryProvider = remember {
                         entryProvider<NavKey> {
                             entry<Destination.Dashboard> {
@@ -72,9 +127,7 @@ class MainActivity : ComponentActivity() {
                                         backStack.add(Destination.AccountDetail(id))
                                     },
                                     onHistoryClick = {
-                                        dashboardViewModel.accounts.value.firstOrNull()?.let {
-                                            backStack.add(Destination.AccountDetail(it.id))
-                                        }
+                                        backStack.add(Destination.History)
                                     },
                                     onNewTransactionClick = { id ->
                                         backStack.add(Destination.TransactionSimulator(id))
@@ -91,6 +144,15 @@ class MainActivity : ComponentActivity() {
                                     onTransactionClick = { id ->
                                         backStack.add(Destination.BlockedTransactionDetail(id))
                                     }
+                                )
+                            }
+                            entry<Destination.History> {
+                                val historyViewModel: HistoryViewModel = viewModel {
+                                    HistoryViewModel(bankDao)
+                                }
+                                HistoryScreen(
+                                    viewModel = historyViewModel,
+                                    onBack = popSafe
                                 )
                             }
                             entry<Destination.TransactionSimulator> { key ->
@@ -174,23 +236,35 @@ class MainActivity : ComponentActivity() {
                                     onBack = popSafe
                                 )
                             }
+                            entry<Destination.Settings> {
+                                val globalSettingsViewModel: GlobalSettingsViewModel = viewModel {
+                                    GlobalSettingsViewModel(bankDao)
+                                }
+                                SettingsScreen(
+                                    viewModel = globalSettingsViewModel
+                                )
+                            }
+                            entry<Destination.CreateAccount> {
+                                val createAccountViewModel: CreateAccountViewModel = viewModel {
+                                    CreateAccountViewModel(bankDao)
+                                }
+                                CreateAccountScreen(
+                                    viewModel = createAccountViewModel,
+                                    onBack = popSafe
+                                )
+                            }
                         }
                     }
 
                     NavDisplay(
                         backStack = backStack,
                         onBack = popSafe,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.padding(innerPadding).fillMaxSize(),
                         entryDecorators = listOf(
                             rememberSaveableStateHolderNavEntryDecorator(),
                             rememberViewModelStoreNavEntryDecorator()
                         ),
                         entryProvider = entryProvider
-                    )
-
-                    TimeMachineBar(
-                        viewModel = timeMachineViewModel,
-                        modifier = Modifier.align(Alignment.BottomCenter)
                     )
                 }
             }

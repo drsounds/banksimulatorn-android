@@ -17,6 +17,7 @@
     <string name="perform_transaction">Suorita tapahtuma</string>
     <string name="insufficient_funds">Saldo ei riitä</string>
     <string name="invalid_amount">Virheellinen summa</string>
+    <string name="create_new">Luo uusi</string>
     <string name="credit_limit">Luottoraja</string>
     <string name="used_credit">Käytetty luotto</string>
     <string name="interest">Korko</string>
@@ -56,6 +57,8 @@
     <string name="payment">Maksu</string>
     <string name="error_amount_zero">Summan on oltava suurempi kuin nolla</string>
     <string name="error_insufficient_funds">Saldo ei riitä</string>
+    <string name="success_transaction">Tapahtuma suoritettu onnistuneesti</string>
+    <string name="success_charge">Veloitus onnistui</string>
     <string name="transfer_to">Siirrä kohteeseen</string>
     <string name="interest_rate_display">Korko (%1$s %%)</string>
     <string name="error_charge_failed">Veloitus epäonnistui: %1$s</string>
@@ -71,9 +74,18 @@
     <string name="overdraft_interest_rate">Ylityskorko (%)</string>
     <string name="interest_capitalization_day">Pääomituspäivä (1&#8211;31)</string>
     <string name="invoice_cycle_day">Laskutuspäivä (1&#8211;31)</string>
-    <string name="bnpl_mode">BNPL-tila (Yksittäisten ostosten täsmäytys)</string>
+    <string name="bnpl_mode">BNPL-tila (Yksilöllinen täsmäytys)</string>
     <string name="loan_fee">Kuukausittainen lainamaksu</string>
     <string name="interest_rate">Korkoprosentti (%)</string>
     <string name="save_settings">Tallenna asetukset</string>
     <string name="settings_saved">Asetukset tallennettu</string>
+    <string name="currency">Valuutta</string>
+    <string name="reset_system">Nollaa järjestelmä</string>
+    <string name="export_data">Vie tiedot (JSON)</string>
+    <string name="import_data">Tuo tiedot (JSON)</string>
+    <string name="closed_accounts">Suljetut tilit</string>
+    <string name="reopen">Avaa uudelleen</string>
+    <string name="create_account">Luo tili</string>
+    <string name="home">Koti</string>
+    <string name="settings">Asetukset</string>
 </resources>

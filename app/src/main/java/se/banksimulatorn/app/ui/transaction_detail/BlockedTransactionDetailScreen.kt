@@ -24,7 +24,8 @@ import java.util.*
 @Composable
 fun BlockedTransactionDetailScreen(
     viewModel: BlockedTransactionDetailViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val transaction by viewModel.transaction.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -47,74 +48,77 @@ fun BlockedTransactionDetailScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.details)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
+    Column(modifier = modifier) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.details)) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
-            )
-        }
-    ) { innerPadding ->
-        transaction?.let { t ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1)),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text(t.merchant ?: t.description, style = MaterialTheme.typography.headlineMedium)
-                            
-                            val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
-                            Text(
-                                currencyFormatter.format(t.amount).replace("€", ""),
-                                style = MaterialTheme.typography.displaySmall,
-                                color = if (t.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
-                            )
-                            
-                            HorizontalDivider()
-                            
-                            DetailRow(stringResource(R.string.transaction_id), t.id.toString())
-                            DetailRow(stringResource(R.string.blocked), if (t.status == TransactionStatus.BLOCKED) stringResource(R.string.reserved) else t.status.name)
-                            DetailRow(stringResource(R.string.date_authorized), t.authorizedAt?.let { dateFormatter.format(Date(it)) } ?: "-")
-                        }
-                    }
-                }
+            }
+        )
 
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(
-                            onClick = { viewModel.chargeNow() },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = MaterialTheme.shapes.extraLarge,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD4B44F), contentColor = Color.Black)
+        Box(modifier = Modifier.fillMaxSize()) {
+            transaction?.let { t ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1)),
+                            shape = MaterialTheme.shapes.medium
                         ) {
-                            Text(stringResource(R.string.charge_amount_now))
+                            Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Text(t.merchant ?: t.description, style = MaterialTheme.typography.headlineMedium)
+                                
+                                val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+                                Text(
+                                    currencyFormatter.format(t.amount).replace("€", ""),
+                                    style = MaterialTheme.typography.displaySmall,
+                                    color = if (t.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
+                                )
+                                
+                                HorizontalDivider()
+                                
+                                DetailRow(stringResource(R.string.transaction_id), t.id.toString())
+                                DetailRow(stringResource(R.string.blocked), if (t.status == TransactionStatus.BLOCKED) stringResource(R.string.reserved) else t.status.name)
+                                DetailRow(stringResource(R.string.date_authorized), t.authorizedAt?.let { dateFormatter.format(Date(it)) } ?: "-")
+                            }
                         }
-                        
-                        OutlinedButton(
-                            onClick = { viewModel.releaseAmount() },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = MaterialTheme.shapes.extraLarge,
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFBA1A1A))
-                        ) {
-                            Text(stringResource(R.string.release_amount))
+                    }
+
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Button(
+                                onClick = { viewModel.chargeNow() },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = MaterialTheme.shapes.extraLarge,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD4B44F), contentColor = Color.Black)
+                            ) {
+                                Text(stringResource(R.string.charge_amount_now))
+                            }
+                            
+                            OutlinedButton(
+                                onClick = { viewModel.releaseAmount() },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = MaterialTheme.shapes.extraLarge,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFBA1A1A))
+                            ) {
+                                Text(stringResource(R.string.release_amount))
+                            }
                         }
                     }
                 }
             }
+            
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

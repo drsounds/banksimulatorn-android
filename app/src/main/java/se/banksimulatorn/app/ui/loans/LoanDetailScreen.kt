@@ -1,26 +1,12 @@
 package se.banksimulatorn.app.ui.loans
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,51 +19,43 @@ import se.banksimulatorn.app.R
 import java.text.NumberFormat
 import java.util.Locale
 
-import androidx.compose.material.icons.rounded.Settings
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanDetailScreen(
     viewModel: LoanDetailViewModel,
     onSettingsClick: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val loan by viewModel.loan.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall)
-                        Text(stringResource(R.string.loan), style = MaterialTheme.typography.titleMedium)
-                    }
-                },
-                actions = {
-                    loan?.let { l ->
-                        IconButton(onClick = { onSettingsClick(l.id) }) {
-                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+    Column(modifier = modifier) {
+        TopAppBar(
+            title = {
+                Column {
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall)
+                    Text(stringResource(R.string.loan), style = MaterialTheme.typography.titleMedium)
+                }
+            },
+            actions = {
+                loan?.let { l ->
+                    IconButton(onClick = { onSettingsClick(l.id) }) {
+                        Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
                     }
                 }
-            )
-        }
-    ) { innerPadding ->
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            }
+        )
+
         loan?.let { l ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding() + 16.dp
-                ),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {

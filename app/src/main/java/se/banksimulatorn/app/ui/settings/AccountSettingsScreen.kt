@@ -19,10 +19,11 @@ import se.banksimulatorn.app.R
 @Composable
 fun AccountSettingsScreen(
     viewModel: AccountSettingsViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val account by viewModel.account.collectAsState()
-    val creditCard by viewModel.creditCard.collectAsState()
+    val revolvingAccount by viewModel.revolvingAccount.collectAsState()
     val loan by viewModel.loan.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
@@ -36,52 +37,55 @@ fun AccountSettingsScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.account_settings)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
+    Column(modifier = modifier) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.account_settings)) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
+            }
+        )
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                account?.let { acc ->
+                    AccountSettingsForm(
+                        initialPositive = acc.positiveInterestRate,
+                        initialOverdraft = acc.overdraftInterestRate,
+                        initialCapDay = acc.interestCapitalizationDay,
+                        onSave = { pos, over, day -> viewModel.saveAccountSettings(pos, over, day) }
+                    )
+                }
+                
+                revolvingAccount?.let { card ->
+                    CreditSettingsForm(
+                        initialCycleDay = card.invoiceCycleDay,
+                        initialBnpl = card.isBnplMode,
+                        initialInterestRate = card.interestRate,
+                        onSave = { day, bnpl, rate -> viewModel.saveCreditSettings(day, bnpl, rate) }
+                    )
+                }
+                
+                loan?.let { l ->
+                    LoanSettingsForm(
+                        initialCycleDay = l.invoiceCycleDay,
+                        initialFee = l.loanFee,
+                        onSave = { day, fee -> viewModel.saveLoanSettings(day, fee) }
+                    )
+                }
+            }
+            
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
             )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            account?.let { acc ->
-                AccountSettingsForm(
-                    initialPositive = acc.positiveInterestRate,
-                    initialOverdraft = acc.overdraftInterestRate,
-                    initialCapDay = acc.interestCapitalizationDay,
-                    onSave = { pos, over, day -> viewModel.saveAccountSettings(pos, over, day) }
-                )
-            }
-            
-            creditCard?.let { card ->
-                CreditSettingsForm(
-                    initialCycleDay = card.invoiceCycleDay,
-                    initialBnpl = card.isBnplMode,
-                    initialInterestRate = card.interestRate,
-                    onSave = { day, bnpl, rate -> viewModel.saveCreditSettings(day, bnpl, rate) }
-                )
-            }
-            
-            loan?.let { l ->
-                LoanSettingsForm(
-                    initialCycleDay = l.invoiceCycleDay,
-                    initialFee = l.loanFee,
-                    onSave = { day, fee -> viewModel.saveLoanSettings(day, fee) }
-                )
-            }
         }
     }
 }

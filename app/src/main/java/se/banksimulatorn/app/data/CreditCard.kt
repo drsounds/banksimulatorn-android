@@ -8,11 +8,11 @@ data class CreditCard(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val cardNumber: String,
-    val creditLimit: Double,
-    val usedCredit: Double,
-    val interestRate: Double,
-    val pendingAuthorizations: Double,
-    val invoiceCycleDay: Int = 1,
-    val isBnplMode: Boolean = false,
-    val pendingInterest: Double = 0.0
+    val linkedAccountId: Int? = null,
+    val linkedCreditAccountId: Int? = null,
+    val type: CardType
 )
+
+enum class CardType {
+    DEBIT, CREDIT
+}

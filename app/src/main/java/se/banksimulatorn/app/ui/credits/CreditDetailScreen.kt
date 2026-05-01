@@ -1,31 +1,13 @@
 package se.banksimulatorn.app.ui.credits
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,15 +18,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
-import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-import androidx.compose.material.icons.rounded.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,45 +32,40 @@ fun CreditDetailScreen(
     onSimulatePurchase: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
     onSettingsClick: (Int) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val card by viewModel.creditCard.collectAsState()
+    val revolvingAccount by viewModel.revolvingAccount.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(stringResource(R.string.credits), style = MaterialTheme.typography.labelMedium)
-                        Text(card?.cardNumber ?: "", style = MaterialTheme.typography.titleMedium)
-                    }
-                },
-                actions = {
-                    card?.let { c ->
-                        IconButton(onClick = { onSettingsClick(c.id) }) {
-                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+    Column(modifier = modifier) {
+        TopAppBar(
+            title = {
+                Column {
+                    Text(stringResource(R.string.credits), style = MaterialTheme.typography.labelMedium)
+                    Text(card?.cardNumber ?: "", style = MaterialTheme.typography.titleMedium)
+                }
+            },
+            actions = {
+                revolvingAccount?.let { c ->
+                    IconButton(onClick = { onSettingsClick(c.id) }) {
+                        Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
                     }
                 }
-            )
-        }
-    ) { innerPadding ->
-        card?.let { card ->
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            }
+        )
+
+        revolvingAccount?.let { acc ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding() + 16.dp
-                ),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
@@ -101,12 +75,12 @@ fun CreditDetailScreen(
                         shape = MaterialTheme.shapes.medium
                     ) {
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(card.creditLimit).replace("€", ""))
-                            InfoRow(stringResource(R.string.used_credit), "-" + currencyFormatter.format(card.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
-                            InfoRow(stringResource(R.string.interest), "-120,00") 
-                            InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(card.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
+                            InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(acc.creditLimit).replace("€", ""))
+                            InfoRow(stringResource(R.string.used_credit), "-" + currencyFormatter.format(acc.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
+                            InfoRow(stringResource(R.string.interest), currencyFormatter.format(acc.pendingInterest).replace("€", "")) 
+                            InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
                             
-                            val available = card.creditLimit - card.usedCredit - card.pendingAuthorizations - 120.0
+                            val available = acc.creditLimit - acc.usedCredit - acc.pendingAuthorizations - acc.pendingInterest
                             InfoRow(stringResource(R.string.available_amount), currencyFormatter.format(available).replace("€", ""), fontWeight = FontWeight.Bold)
                         }
                     }
@@ -114,7 +88,7 @@ fun CreditDetailScreen(
 
                 item {
                     Button(
-                        onClick = { onSimulatePurchase(card.id) },
+                        onClick = { onSimulatePurchase(acc.id) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFD4B44F),
                             contentColor = Color.Black

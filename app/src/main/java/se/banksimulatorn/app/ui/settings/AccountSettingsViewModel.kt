@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.BankDao
-import se.banksimulatorn.app.data.CreditCard
+import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Loan
 import se.banksimulatorn.app.navigation.AccountSettingsType
 
@@ -24,8 +24,8 @@ class AccountSettingsViewModel(
     private val _account = MutableStateFlow<Account?>(null)
     val account: StateFlow<Account?> = _account.asStateFlow()
 
-    private val _creditCard = MutableStateFlow<CreditCard?>(null)
-    val creditCard: StateFlow<CreditCard?> = _creditCard.asStateFlow()
+    private val _revolvingAccount = MutableStateFlow<RevolvingCreditAccount?>(null)
+    val revolvingAccount: StateFlow<RevolvingCreditAccount?> = _revolvingAccount.asStateFlow()
 
     private val _loan = MutableStateFlow<Loan?>(null)
     val loan: StateFlow<Loan?> = _loan.asStateFlow()
@@ -41,7 +41,7 @@ class AccountSettingsViewModel(
         viewModelScope.launch {
             when (type) {
                 AccountSettingsType.ACCOUNT -> _account.value = bankDao.getAccountById(id)
-                AccountSettingsType.CREDIT_CARD -> _creditCard.value = bankDao.getCreditCardById(id)
+                AccountSettingsType.CREDIT_CARD -> _revolvingAccount.value = bankDao.getRevolvingCreditById(id)
                 AccountSettingsType.LOAN -> _loan.value = bankDao.getLoanById(id)
             }
         }
@@ -64,14 +64,14 @@ class AccountSettingsViewModel(
 
     fun saveCreditSettings(cycleDay: Int, bnpl: Boolean, interestRate: Double) {
         viewModelScope.launch {
-            _creditCard.value?.let { card ->
+            _revolvingAccount.value?.let { card ->
                 val updated = card.copy(
                     invoiceCycleDay = cycleDay,
                     isBnplMode = bnpl,
                     interestRate = interestRate
                 )
-                bankDao.updateCreditCard(updated)
-                _creditCard.value = updated
+                bankDao.updateRevolvingCredit(updated)
+                _revolvingAccount.value = updated
                 _uiEvent.emit(AccountSettingsUiEvent.Success)
             }
         }

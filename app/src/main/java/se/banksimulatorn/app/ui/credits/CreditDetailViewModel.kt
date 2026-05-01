@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.BankDao
 import se.banksimulatorn.app.data.CreditCard
+import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Transaction
 
 class CreditDetailViewModel(
@@ -21,11 +22,14 @@ class CreditDetailViewModel(
     private val _creditCard = MutableStateFlow<CreditCard?>(null)
     val creditCard: StateFlow<CreditCard?> = _creditCard.asStateFlow()
 
+    private val _revolvingAccount = MutableStateFlow<RevolvingCreditAccount?>(null)
+    val revolvingAccount: StateFlow<RevolvingCreditAccount?> = _revolvingAccount.asStateFlow()
+
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val transactions: StateFlow<List<Transaction>> = _creditCard
-        .flatMapLatest { card ->
-            if (card == null) kotlinx.coroutines.flow.flowOf(emptyList())
-            else bankDao.getTransactionsForCreditCard(card.id)
+    val transactions: StateFlow<List<Transaction>> = _revolvingAccount
+        .flatMapLatest { account ->
+            if (account == null) kotlinx.coroutines.flow.flowOf(emptyList())
+            else bankDao.getTransactionsForRevolvingCredit(account.id)
         }
         .stateIn(
             scope = viewModelScope,
@@ -39,7 +43,11 @@ class CreditDetailViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            _creditCard.value = bankDao.getCreditCardById(cardId)
+            val card = bankDao.getCreditCardById(cardId)
+            _creditCard.value = card
+            card?.linkedCreditAccountId?.let { id ->
+                _revolvingAccount.value = bankDao.getRevolvingCreditById(id)
+            }
         }
     }
 }

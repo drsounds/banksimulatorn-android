@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import se.banksimulatorn.app.data.Account
@@ -24,6 +23,7 @@ class HistoryViewModel(private val bankDao: BankDao) : ViewModel() {
     private val _selectedAccountId = MutableStateFlow<Int?>(null)
     val selectedAccountId: StateFlow<Int?> = _selectedAccountId
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val transactions: StateFlow<List<Transaction>> = _selectedAccountId
         .flatMapLatest { id ->
             if (id == null) kotlinx.coroutines.flow.flowOf(emptyList())

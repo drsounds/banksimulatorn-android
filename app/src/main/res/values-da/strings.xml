@@ -76,4 +76,14 @@
     <string name="interest_rate">Rentesats (%)</string>
     <string name="save_settings">Gem indstillinger</string>
     <string name="settings_saved">Indstillinger gemt</string>
+    <string name="currency">Valuta</string>
+    <string name="reset_system">Nulstil systemet</string>
+    <string name="export_data">Eksporter data (JSON)</string>
+    <string name="import_data">Importer data (JSON)</string>
+    <string name="closed_accounts">Lukkede konti</string>
+    <string name="reopen">Genåbn</string>
+    <string name="create_account">Opret konto</string>
+    <string name="create_new">Opret ny</string>
+    <string name="home">Hjem</string>
+    <string name="settings">Indstillinger</string>
 </resources>

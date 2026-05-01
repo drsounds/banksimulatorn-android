@@ -16,7 +16,8 @@ data class Account(
     val overdraftInterestRate: Double = 0.0,
     val interestCapitalizationDay: Int = 1,
     val pendingInterest: Double = 0.0,
-    val deletedAt: Long? = null
+    val deletedAt: Long? = null,
+    val closedAt: Long? = null
 )
 
 enum class AccountType {

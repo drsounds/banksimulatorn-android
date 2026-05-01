@@ -27,6 +27,15 @@ sealed interface Destination : NavKey {
 
     @Serializable
     data class AccountSettings(val id: Int, val type: AccountSettingsType) : Destination
+
+    @Serializable
+    data object Settings : Destination
+
+    @Serializable
+    data object CreateAccount : Destination
+
+    @Serializable
+    data object History : Destination
 }
 
 enum class AccountSettingsType {

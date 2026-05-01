@@ -13,6 +13,7 @@ import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.BankDao
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionType
+import se.banksimulatorn.app.data.TransactionStatus
 
 class TransactionViewModel(
     private val accountId: Int,
@@ -71,7 +72,8 @@ class TransactionViewModel(
                             amount = -amount,
                             timestamp = System.currentTimeMillis(),
                             description = "Transfer to ${targetAccount.name}: $description",
-                            type = TransactionType.TRANSFER
+                            type = TransactionType.TRANSFER,
+                            status = TransactionStatus.COMPLETED
                         ),
                         currentAccount.copy(balance = currentAccount.balance - amount)
                     )
@@ -83,7 +85,8 @@ class TransactionViewModel(
                             amount = amount,
                             timestamp = System.currentTimeMillis(),
                             description = "Transfer from ${currentAccount.name}: $description",
-                            type = TransactionType.TRANSFER
+                            type = TransactionType.TRANSFER,
+                            status = TransactionStatus.COMPLETED
                         ),
                         targetAccount.copy(balance = targetAccount.balance + amount)
                     )
@@ -95,7 +98,8 @@ class TransactionViewModel(
                             amount = finalAmount,
                             timestamp = System.currentTimeMillis(),
                             description = description,
-                            type = type
+                            type = type,
+                            status = TransactionStatus.COMPLETED
                         ),
                         currentAccount.copy(balance = currentAccount.balance + finalAmount)
                     )

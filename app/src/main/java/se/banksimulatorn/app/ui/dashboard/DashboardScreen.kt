@@ -1,38 +1,13 @@
 package se.banksimulatorn.app.ui.dashboard
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,10 +21,10 @@ import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
-import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.Loan
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
+import se.banksimulatorn.app.data.RevolvingCreditAccount
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,55 +45,33 @@ fun DashboardScreen(
 ) {
     val accounts by viewModel.accounts.collectAsState()
     val loans by viewModel.loans.collectAsState()
-    val creditCards by viewModel.creditCards.collectAsState()
+    val revolvingCredits by viewModel.revolvingCredits.collectAsState()
     val allTransactions by viewModel.allTransactions.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onHistoryClick) {
-                        Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+    Column(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)) {
+        LargeTopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleMedium,
                 )
+            },
+            actions = {
+                IconButton(onClick = onHistoryClick) {
+                    Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history))
+                }
+            },
+            scrollBehavior = scrollBehavior,
+            colors = TopAppBarDefaults.largeTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
             )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Home, contentDescription = null) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Rounded.Person, contentDescription = null) }
-                )
-            }
-        }
-    ) { innerPadding ->
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding() + 80.dp // Space for the floating button
-            ),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -132,7 +85,7 @@ fun DashboardScreen(
 
             item {
                 Button(
-                    onClick = { creditCards.firstOrNull()?.let { onNewPurchaseClick(it.id) } },
+                    onClick = { revolvingCredits.firstOrNull()?.let { onNewPurchaseClick(it.id) } },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD4B44F),
                         contentColor = Color.Black
@@ -207,8 +160,8 @@ fun DashboardScreen(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
-            items(creditCards) { card ->
-                CreditCardItem(card = card, onClick = { onCreditClick(card.id) })
+            items(revolvingCredits) { card ->
+                RevolvingCreditItem(card = card, onClick = { onCreditClick(card.id) })
             }
 
             item {
@@ -336,7 +289,7 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
 }
 
 @Composable
-fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
+fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     Card(
         onClick = onClick,
@@ -350,11 +303,7 @@ fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (card.name == "MasterCard") stringResource(R.string.mastercard)
-                           else card.name,
-                    style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
-                )
+                Text(card.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
                 Text(
                     "-" + currencyFormatter.format(card.usedCredit).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
@@ -365,7 +314,7 @@ fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(card.cardNumber, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text(stringResource(R.string.credits), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 Text(
                     currencyFormatter.format(card.creditLimit).replace("€", ""),
                     style = MaterialTheme.typography.bodyMedium,

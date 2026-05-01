@@ -7,8 +7,18 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [Account::class, Transaction::class, Loan::class, CreditCard::class, TimeSettings::class],
-    version = 10,
+    entities = [
+        Account::class, 
+        Transaction::class, 
+        Loan::class, 
+        CreditCard::class, 
+        TimeSettings::class,
+        RevolvingCreditAccount::class,
+        GlobalSettings::class,
+        Invoice::class,
+        RecurringTask::class
+    ],
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
