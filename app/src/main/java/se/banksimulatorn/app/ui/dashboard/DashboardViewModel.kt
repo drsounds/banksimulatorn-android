@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.Account
@@ -39,16 +38,7 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    val allTransactions: StateFlow<List<Transaction>> = bankDao.getAllAccounts()
-        .flatMapLatest { accounts ->
-            if (accounts.isEmpty()) kotlinx.coroutines.flow.flowOf(emptyList())
-            else {
-                // Combine transactions from all accounts for general dashboard view
-                // For simplicity, let's just get transactions for the first account or a dedicated query
-                // Actually, let's just get transactions for all accounts
-                bankDao.getTransactionsForAccount(accounts.first().id) // Simplified to first account as per image_1
-            }
-        }
+    val allTransactions: StateFlow<List<Transaction>> = bankDao.getAllTransactions()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -65,7 +55,7 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                         id = 1,
                         name = "Checking",
                         accountNumber = "9 9999-9999 0",
-                        balance = 500.0,
+                        balance = 1000.0,
                         blockedAmount = 500.0,
                         type = AccountType.CHECKING
                     )
@@ -121,6 +111,7 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                 bankDao.insertTransaction(
                     Transaction(
                         accountId = 1,
+                        creditCardId = 1,
                         amount = -250.0,
                         timestamp = System.currentTimeMillis(),
                         description = "Reserved",
@@ -133,6 +124,7 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                 bankDao.insertTransaction(
                     Transaction(
                         accountId = 1,
+                        creditCardId = 1,
                         amount = -1289.0,
                         timestamp = System.currentTimeMillis() - 86400000,
                         description = "Credit card purchase",

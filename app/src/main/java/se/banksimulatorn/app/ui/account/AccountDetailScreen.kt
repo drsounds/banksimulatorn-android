@@ -191,7 +191,7 @@ fun AccountSummaryCard(account: Account) {
 @Composable
 fun AccountTransactionCard(transaction: Transaction) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
-    val dateFormatter = SimpleDateFormat("MMMM dth, yyyy", Locale.US) // Matches "April 21st" loosely
+    val dateFormatter = SimpleDateFormat("MMMM d'th', yyyy", Locale.US) // Matches "April 21st" loosely
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -204,7 +204,14 @@ fun AccountTransactionCard(transaction: Transaction) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(transaction.merchant ?: transaction.description, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal)
+                Text(
+                    text = when (transaction.merchant) {
+                        "ICA" -> "ICA"
+                        "H&M" -> "H&M"
+                        else -> transaction.merchant ?: transaction.description
+                    },
+                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal
+                )
                 Text(
                     currencyFormatter.format(transaction.amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
@@ -218,7 +225,8 @@ fun AccountTransactionCard(transaction: Transaction) {
                 val detail = if (transaction.status == TransactionStatus.BLOCKED || transaction.status == TransactionStatus.PENDING) {
                     stringResource(R.string.reserved) + (transaction.cardNumber?.let { " | $it" } ?: "")
                 } else {
-                    transaction.description
+                    if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase)
+                    else transaction.description
                 }
                 Text(detail, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 if (transaction.status == TransactionStatus.COMPLETED) {

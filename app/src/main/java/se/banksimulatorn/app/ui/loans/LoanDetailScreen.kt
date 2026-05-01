@@ -27,13 +27,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import se.banksimulatorn.app.R
 import java.text.NumberFormat
 import java.util.Locale
-
-import androidx.compose.ui.res.stringResource
-import se.banksimulatorn.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

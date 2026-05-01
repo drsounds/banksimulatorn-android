@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
@@ -33,14 +32,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import se.banksimulatorn.app.data.CreditCard
-import java.text.NumberFormat
-import java.util.Locale
-
-import androidx.compose.ui.res.stringResource
 import se.banksimulatorn.app.R
+import se.banksimulatorn.app.data.CreditCard
+import se.banksimulatorn.app.data.Transaction
+import se.banksimulatorn.app.data.TransactionStatus
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,7 @@ fun CreditDetailScreen(
     onBack: () -> Unit
 ) {
     val card by viewModel.creditCard.collectAsState()
+    val transactions by viewModel.transactions.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
     Scaffold(
@@ -57,7 +60,7 @@ fun CreditDetailScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(stringResource(R.string.credit_card), style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.credits), style = MaterialTheme.typography.labelMedium)
                         Text(card?.cardNumber ?: "", style = MaterialTheme.typography.titleMedium)
                     }
                 },
@@ -89,7 +92,7 @@ fun CreditDetailScreen(
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(card.creditLimit).replace("€", ""))
                             InfoRow(stringResource(R.string.used_credit), "-" + currencyFormatter.format(card.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
-                            InfoRow(stringResource(R.string.interest_rate, "12,5"), "-120,00") 
+                            InfoRow(stringResource(R.string.interest), "-120,00") 
                             InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(card.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
                             
                             val available = card.creditLimit - card.usedCredit - card.pendingAuthorizations - 120.0
@@ -114,28 +117,24 @@ fun CreditDetailScreen(
                     }
                 }
 
-                item {
-                    Text(stringResource(R.string.blocked), style = MaterialTheme.typography.labelLarge)
-                }
-                item {
-                    CreditTransactionItem(
-                        merchant = "Store",
-                        detail = stringResource(R.string.reserved) + " | MC ***-4242",
-                        amount = -2500.0,
-                        isBlocked = true
-                    )
+                val blockedTransactions = transactions.filter { it.status == TransactionStatus.BLOCKED || it.status == TransactionStatus.PENDING }
+                if (blockedTransactions.isNotEmpty()) {
+                    item {
+                        Text(stringResource(R.string.blocked), style = MaterialTheme.typography.labelLarge)
+                    }
+                    items(blockedTransactions) { transaction ->
+                        CreditTransactionItem(transaction)
+                    }
                 }
 
-                item {
-                    Text(stringResource(R.string.latest_transactions), style = MaterialTheme.typography.labelLarge)
-                }
-                item {
-                    CreditTransactionItem(
-                        merchant = "H&M",
-                        detail = stringResource(R.string.credit_card_purchase),
-                        date = "April 21st, 2026",
-                        amount = -2500.0
-                    )
+                val completedTransactions = transactions.filter { it.status == TransactionStatus.COMPLETED }
+                if (completedTransactions.isNotEmpty()) {
+                    item {
+                        Text(stringResource(R.string.latest_transactions), style = MaterialTheme.typography.labelLarge)
+                    }
+                    items(completedTransactions) { transaction ->
+                        CreditTransactionItem(transaction)
+                    }
                 }
             }
         }
@@ -156,14 +155,11 @@ fun InfoRow(
 }
 
 @Composable
-fun CreditTransactionItem(
-    merchant: String,
-    detail: String,
-    date: String? = null,
-    amount: Double,
-    isBlocked: Boolean = false
-) {
+fun CreditTransactionItem(transaction: Transaction) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val dateFormatter = SimpleDateFormat("MMMM d'th', yyyy", Locale.US)
+    val isBlocked = transaction.status == TransactionStatus.BLOCKED || transaction.status == TransactionStatus.PENDING
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -177,20 +173,26 @@ fun CreditTransactionItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(merchant, style = MaterialTheme.typography.headlineSmall)
+                Text(transaction.merchant ?: transaction.description, style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    currencyFormatter.format(amount).replace("€", ""),
+                    currencyFormatter.format(transaction.amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = if (amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
+                    color = if (transaction.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
                 )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                val detail = if (isBlocked) {
+                    stringResource(R.string.reserved) + (transaction.cardNumber?.let { " | $it" } ?: "")
+                } else {
+                    if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase)
+                    else transaction.description
+                }
                 Text(detail, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                if (date != null) {
-                    Text(date, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                if (transaction.status == TransactionStatus.COMPLETED) {
+                    Text(dateFormatter.format(Date(transaction.timestamp)), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             }
         }

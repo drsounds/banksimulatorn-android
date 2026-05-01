@@ -61,4 +61,10 @@ interface BankDao {
         insertTransaction(transaction)
         updateCreditCard(card)
     }
+
+    @Query("SELECT * FROM transactions WHERE creditCardId = :cardId ORDER BY timestamp DESC")
+    fun getTransactionsForCreditCard(cardId: Int): Flow<List<Transaction>>
+
+    @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
+    fun getAllTransactions(): Flow<List<Transaction>>
 }

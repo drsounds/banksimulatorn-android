@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,6 +53,7 @@ fun PurchaseScreen(
 ) {
     val card by viewModel.creditCard.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     var merchant by remember { mutableStateOf("") }
     var transactionName by remember { mutableStateOf("") }
@@ -60,13 +62,16 @@ fun PurchaseScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is PurchaseUiEvent.Success -> {
-                    snackbarHostState.showSnackbar(event.message)
+                is PurchaseUiEvent.SuccessRes -> {
+                    snackbarHostState.showSnackbar(context.getString(event.resId))
                     merchant = ""
                     transactionName = ""
                     amountText = ""
                 }
-                is PurchaseUiEvent.Error -> {
+                is PurchaseUiEvent.ErrorRes -> {
+                    snackbarHostState.showSnackbar(context.getString(event.resId))
+                }
+                is PurchaseUiEvent.ErrorMsg -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
             }
@@ -81,7 +86,7 @@ fun PurchaseScreen(
                 actions = {
                     Button(
                         onClick = {
-                            val amount = amountText.toDoubleOrNull() ?: 0.0
+                            val amount = amountText.replace(",", ".").toDoubleOrNull() ?: 0.0
                             viewModel.charge(merchant, transactionName, amount)
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -140,7 +145,7 @@ fun PurchaseScreen(
                 OutlinedTextField(
                     value = merchant,
                     onValueChange = { merchant = it },
-                    placeholder = { Text("Eg. ICA AB", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.eg_ica_ab), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -155,7 +160,7 @@ fun PurchaseScreen(
                 OutlinedTextField(
                     value = transactionName,
                     onValueChange = { transactionName = it },
-                    placeholder = { Text("Eg. ICA AB", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.eg_ica_ab), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(

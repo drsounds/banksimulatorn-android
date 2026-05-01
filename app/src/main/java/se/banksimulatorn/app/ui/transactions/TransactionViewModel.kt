@@ -46,14 +46,14 @@ class TransactionViewModel(
             val currentAccount = _account.value ?: return@launch
             
             if (amount <= 0) {
-                _uiEvent.emit(TransactionUiEvent.Error("Amount must be greater than zero"))
+                _uiEvent.emit(TransactionUiEvent.ErrorRes(se.banksimulatorn.app.R.string.error_amount_zero))
                 return@launch
             }
 
             when (type) {
                 TransactionType.WITHDRAWAL, TransactionType.TRANSFER -> {
                     if (currentAccount.balance < amount) {
-                        _uiEvent.emit(TransactionUiEvent.Error("Insufficient funds"))
+                        _uiEvent.emit(TransactionUiEvent.ErrorRes(se.banksimulatorn.app.R.string.error_insufficient_funds))
                         return@launch
                     }
                 }
@@ -102,15 +102,16 @@ class TransactionViewModel(
                 }
                 
                 _account.value = bankDao.getAccountById(accountId)
-                _uiEvent.emit(TransactionUiEvent.Success("Transaction completed successfully"))
+                _uiEvent.emit(TransactionUiEvent.SuccessRes(se.banksimulatorn.app.R.string.success_transaction))
             } catch (e: Exception) {
-                _uiEvent.emit(TransactionUiEvent.Error("Transaction failed: ${e.message}"))
+                _uiEvent.emit(TransactionUiEvent.ErrorMsg(e.message ?: "Unknown error"))
             }
         }
     }
 }
 
 sealed class TransactionUiEvent {
-    data class Success(val message: String) : TransactionUiEvent()
-    data class Error(val message: String) : TransactionUiEvent()
+    data class SuccessRes(val resId: Int) : TransactionUiEvent()
+    data class ErrorRes(val resId: Int) : TransactionUiEvent()
+    data class ErrorMsg(val message: String) : TransactionUiEvent()
 }

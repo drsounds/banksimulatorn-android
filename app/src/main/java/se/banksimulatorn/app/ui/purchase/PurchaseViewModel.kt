@@ -40,7 +40,7 @@ class PurchaseViewModel(
         viewModelScope.launch {
             val card = _creditCard.value ?: return@launch
             if (amount <= 0) {
-                _uiEvent.emit(PurchaseUiEvent.Error("Amount must be greater than zero"))
+                _uiEvent.emit(PurchaseUiEvent.ErrorRes(se.banksimulatorn.app.R.string.error_amount_zero))
                 return@launch
             }
 
@@ -51,7 +51,7 @@ class PurchaseViewModel(
                 )
 
                 val transaction = Transaction(
-                    accountId = -1, // Use -1 or similar for card transactions if not linked to a bank account directly
+                    creditCardId = card.id,
                     amount = -amount,
                     timestamp = System.currentTimeMillis(),
                     description = transactionName,
@@ -62,16 +62,17 @@ class PurchaseViewModel(
                 )
 
                 bankDao.performCreditTransaction(transaction, updatedCard)
-                _uiEvent.emit(PurchaseUiEvent.Success("Charge successful"))
+                _uiEvent.emit(PurchaseUiEvent.SuccessRes(se.banksimulatorn.app.R.string.success_charge))
                 _creditCard.value = updatedCard
             } catch (e: Exception) {
-                _uiEvent.emit(PurchaseUiEvent.Error("Charge failed: ${e.message}"))
+                _uiEvent.emit(PurchaseUiEvent.ErrorMsg(e.message ?: "Unknown error"))
             }
         }
     }
 }
 
 sealed class PurchaseUiEvent {
-    data class Success(val message: String) : PurchaseUiEvent()
-    data class Error(val message: String) : PurchaseUiEvent()
+    data class SuccessRes(val resId: Int) : PurchaseUiEvent()
+    data class ErrorRes(val resId: Int) : PurchaseUiEvent()
+    data class ErrorMsg(val message: String) : PurchaseUiEvent()
 }

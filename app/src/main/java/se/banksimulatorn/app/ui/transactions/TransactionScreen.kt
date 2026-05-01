@@ -45,15 +45,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.TransactionType
 import java.text.NumberFormat
 import java.util.Locale
-
-import androidx.compose.ui.res.stringResource
-import se.banksimulatorn.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +64,7 @@ fun TransactionScreen(
     val account by viewModel.account.collectAsState()
     val allAccounts by viewModel.allAccounts.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     var selectedType by remember { mutableStateOf(TransactionType.DEPOSIT) }
     var amountText by remember { mutableStateOf("") }
@@ -71,17 +72,20 @@ fun TransactionScreen(
     var targetAccountId by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
 
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is TransactionUiEvent.Success -> {
-                    snackbarHostState.showSnackbar(event.message)
+                is TransactionUiEvent.SuccessRes -> {
+                    snackbarHostState.showSnackbar(context.getString(event.resId))
                     amountText = ""
                     descriptionText = ""
                 }
-                is TransactionUiEvent.Error -> {
+                is TransactionUiEvent.ErrorRes -> {
+                    snackbarHostState.showSnackbar(context.getString(event.resId))
+                }
+                is TransactionUiEvent.ErrorMsg -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
             }
@@ -120,7 +124,7 @@ fun TransactionScreen(
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = stringResource(R.string.balance) + ": ${currencyFormatter.format(it.balance)}",
+                        text = stringResource(R.string.balance) + ": ${currencyFormatter.format(it.balance).replace("€", "")}",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -130,12 +134,12 @@ fun TransactionScreen(
             // Transaction Type Selector
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 val types = listOf(
-                    TransactionType.DEPOSIT to Icons.Rounded.Add to R.string.deposit,
-                    TransactionType.WITHDRAWAL to Icons.Rounded.Remove to R.string.withdraw,
-                    TransactionType.TRANSFER to Icons.Rounded.SwapHoriz to R.string.transfer
+                    Triple(TransactionType.DEPOSIT, Icons.Rounded.Add, R.string.deposit),
+                    Triple(TransactionType.WITHDRAWAL, Icons.Rounded.Remove, R.string.withdraw),
+                    Triple(TransactionType.TRANSFER, Icons.Rounded.SwapHoriz, R.string.transfer)
                 )
-                types.forEachIndexed { index, (pair, stringRes) ->
-                    val (type, icon) = pair
+                types.forEachIndexed { index, triple ->
+                    val (type, icon, stringRes) = triple
                     SegmentedButton(
                         selected = selectedType == type,
                         onClick = { selectedType = type },
@@ -195,7 +199,7 @@ fun TransactionScreen(
             // Amount Field
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) amountText = it },
+                onValueChange = { if (it.isEmpty() || it.replace(",", ".").toDoubleOrNull() != null) amountText = it },
                 label = { Text(stringResource(R.string.amount)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -209,7 +213,7 @@ fun TransactionScreen(
                 onValueChange = { descriptionText = it },
                 label = { Text(stringResource(R.string.transaction_name)) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("What's this for?") }
+                placeholder = { Text(stringResource(R.string.whats_this_for)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -217,7 +221,7 @@ fun TransactionScreen(
             // Submit Button
             Button(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull() ?: 0.0
+                    val amount = amountText.replace(",", ".").toDoubleOrNull() ?: 0.0
                     viewModel.performTransaction(
                         selectedType,
                         amount,

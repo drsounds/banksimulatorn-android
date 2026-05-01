@@ -48,7 +48,11 @@ import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.Loan
+import se.banksimulatorn.app.data.Transaction
+import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +70,7 @@ fun DashboardScreen(
     val accounts by viewModel.accounts.collectAsState()
     val loans by viewModel.loans.collectAsState()
     val creditCards by viewModel.creditCards.collectAsState()
+    val allTransactions by viewModel.allTransactions.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -142,6 +147,45 @@ fun DashboardScreen(
                 }
             }
 
+            val blockedTransactions = allTransactions.filter { it.status == TransactionStatus.BLOCKED || it.status == TransactionStatus.PENDING }
+            if (blockedTransactions.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.blocked),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(blockedTransactions) { transaction ->
+                    TransactionItemDesign(
+                        merchant = transaction.merchant ?: transaction.description,
+                        detail = if (transaction.status == TransactionStatus.BLOCKED) stringResource(R.string.reserved) + (transaction.cardNumber?.let { " | $it" } ?: "") else transaction.description,
+                        amount = transaction.amount,
+                        isBlocked = true
+                    )
+                }
+            }
+
+            val completedTransactions = allTransactions.filter { it.status == TransactionStatus.COMPLETED }
+            if (completedTransactions.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.latest_transactions),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(completedTransactions) { transaction ->
+                    val dateFormatter = SimpleDateFormat("MMMM d'th', yyyy", Locale.US)
+                    TransactionItemDesign(
+                        merchant = transaction.merchant ?: transaction.description,
+                        detail = if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase) else transaction.description,
+                        date = dateFormatter.format(Date(transaction.timestamp)),
+                        amount = transaction.amount
+                    )
+                }
+            }
+
             item {
                 Text(
                     stringResource(R.string.loans),
@@ -205,9 +249,12 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            if (account.name == "Checking") stringResource(R.string.deposit) // Using deposit as a placeholder if name matches seed
-                            else if (account.name == "Savings") stringResource(R.string.savings_account)
-                            else account.name,
+                            text = when (account.name) {
+                                "Checking" -> stringResource(R.string.checking)
+                                "Service" -> stringResource(R.string.service)
+                                "Savings" -> stringResource(R.string.savings)
+                                else -> account.name
+                            },
                             style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
                         )
                         Text(
@@ -256,8 +303,8 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    if (loan.name == "Mortgage") stringResource(R.string.loan)
-                    else loan.name,
+                    text = if (loan.name == "Mortgage") stringResource(R.string.mortgage)
+                           else loan.name,
                     style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
                 )
                 Text(
@@ -271,7 +318,7 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    if (loan.type == "Mortgage loan") stringResource(R.string.loan)
+                    if (loan.type == "Mortgage loan") stringResource(R.string.mortgage_loan)
                     else loan.type,
                     style = MaterialTheme.typography.bodyMedium, color = Color.Gray
                 )
@@ -300,7 +347,11 @@ fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(card.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
+                Text(
+                    text = if (card.name == "MasterCard") stringResource(R.string.mastercard)
+                           else card.name,
+                    style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
+                )
                 Text(
                     "-" + currencyFormatter.format(card.usedCredit).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
@@ -317,6 +368,47 @@ fun CreditCardItem(card: CreditCard, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun TransactionItemDesign(
+    merchant: String,
+    detail: String,
+    date: String? = null,
+    amount: Double,
+    isBlocked: Boolean = false
+) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1)),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(merchant, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal)
+                Text(
+                    currencyFormatter.format(amount).replace("€", ""),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(detail, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                if (date != null) {
+                    Text(date, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                }
             }
         }
     }

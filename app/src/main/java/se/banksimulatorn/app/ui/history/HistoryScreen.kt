@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,19 +40,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
+import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.Transaction
-import se.banksimulatorn.app.data.TransactionType
+import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-import androidx.compose.ui.res.stringResource
-import se.banksimulatorn.app.R
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +110,14 @@ fun HistoryScreen(
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text(selectedAccount?.name ?: stringResource(R.string.details)) },
+                            title = { 
+                                val title = selectedAccount?.let { acc ->
+                                    if (acc.name == "Checking") stringResource(R.string.deposit)
+                                    else if (acc.name == "Savings") stringResource(R.string.savings_account)
+                                    else acc.name
+                                } ?: stringResource(R.string.details)
+                                Text(title) 
+                            },
                             navigationIcon = {
                                 if (navigator.canNavigateBack()) {
                                     IconButton(onClick = { 
@@ -165,12 +173,21 @@ fun AccountList(
                 shape = MaterialTheme.shapes.large
             ) {
                 ListItem(
-                    headlineContent = { Text(account.name, fontWeight = FontWeight.Bold) },
-                    supportingContent = { Text(account.type.name) },
+                    headlineContent = { 
+                        val name = if (account.name == "Checking") stringResource(R.string.deposit)
+                                   else if (account.name == "Savings") stringResource(R.string.savings_account)
+                                   else account.name
+                        Text(name, fontWeight = FontWeight.Bold) 
+                    },
+                    supportingContent = { 
+                        val type = if (account.type == AccountType.CHECKING) stringResource(R.string.private_account)
+                                   else stringResource(R.string.savings_account)
+                        Text(type) 
+                    },
                     trailingContent = { 
-                        val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
+                        val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
                         Text(
-                            currencyFormatter.format(account.balance),
+                            currencyFormatter.format(account.balance).replace("€", ""),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
@@ -201,76 +218,79 @@ fun TransactionList(
                 tint = MaterialTheme.colorScheme.outline
             )
             Text(
-            stringResource(R.string.no_transactions),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.outline
-        )
-    }
-} else {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(transactions) { transaction ->
-            TransactionItem(transaction)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                stringResource(R.string.no_transactions),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            items(transactions) { transaction ->
+                TransactionItem(transaction)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            }
         }
     }
-}
 }
 
 @Composable
 fun TransactionItem(transaction: Transaction) {
-val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US)
-val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
-ListItem(
-    headlineContent = { Text(transaction.merchant ?: transaction.description) },
-    supportingContent = { 
-        Column {
-            if (transaction.merchant != null) {
-                Text(transaction.description)
+    ListItem(
+        headlineContent = { Text(transaction.merchant ?: transaction.description) },
+        supportingContent = { 
+            Column {
+                if (transaction.merchant != null) {
+                    val desc = if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase)
+                               else if (transaction.description == "Reserved") stringResource(R.string.reserved)
+                               else transaction.description
+                    Text(desc)
+                }
+                Text(dateFormatter.format(Date(transaction.timestamp))) 
             }
-            Text(dateFormatter.format(Date(transaction.timestamp))) 
+        },
+        trailingContent = {
+            Text(
+                text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount).replace("€", ""),
+                color = if (transaction.amount > 0) 
+                    MaterialTheme.colorScheme.primary 
+                else 
+                    MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Rounded.History,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary
+            )
         }
-    },
-    trailingContent = {
-        Text(
-            text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount),
-            color = if (transaction.amount > 0) 
-                MaterialTheme.colorScheme.primary 
-            else 
-                MaterialTheme.colorScheme.error,
-            fontWeight = FontWeight.Bold
-        )
-    },
-    leadingContent = {
-        Icon(
-            imageVector = Icons.Rounded.History,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary
-        )
-    }
-)
+    )
 }
 
 @Composable
 fun EmptyDetailState() {
-Column(
-    modifier = Modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
-) {
-    Icon(
-        Icons.Rounded.Info,
-        contentDescription = null,
-        modifier = Modifier.size(64.dp),
-        tint = MaterialTheme.colorScheme.outline
-    )
-    Text(
-        stringResource(R.string.select_account),
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.outline
-    )
-}
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            Icons.Rounded.Info,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.outline
+        )
+        Text(
+            stringResource(R.string.select_account),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.outline
+        )
+    }
 }
