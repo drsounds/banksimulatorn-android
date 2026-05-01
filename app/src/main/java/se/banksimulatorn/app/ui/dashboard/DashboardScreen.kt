@@ -65,6 +65,7 @@ fun DashboardScreen(
     onNewPurchaseClick: (Int) -> Unit,
     onLoanClick: (Int) -> Unit,
     onCreditClick: (Int) -> Unit,
+    onTransactionClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val accounts by viewModel.accounts.collectAsState()
@@ -161,7 +162,8 @@ fun DashboardScreen(
                         merchant = transaction.merchant ?: transaction.description,
                         detail = if (transaction.status == TransactionStatus.BLOCKED) stringResource(R.string.reserved) + (transaction.cardNumber?.let { " | $it" } ?: "") else transaction.description,
                         amount = transaction.amount,
-                        isBlocked = true
+                        isBlocked = true,
+                        onClick = { onTransactionClick(transaction.id) }
                     )
                 }
             }
@@ -181,7 +183,8 @@ fun DashboardScreen(
                         merchant = transaction.merchant ?: transaction.description,
                         detail = if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase) else transaction.description,
                         date = dateFormatter.format(Date(transaction.timestamp)),
-                        amount = transaction.amount
+                        amount = transaction.amount,
+                        onClick = { onTransactionClick(transaction.id) }
                     )
                 }
             }
@@ -379,11 +382,13 @@ fun TransactionItemDesign(
     detail: String,
     date: String? = null,
     amount: Double,
-    isBlocked: Boolean = false
+    isBlocked: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E4E1)),
         shape = MaterialTheme.shapes.medium

@@ -49,6 +49,7 @@ import java.util.Locale
 fun CreditDetailScreen(
     viewModel: CreditDetailViewModel,
     onSimulatePurchase: (Int) -> Unit,
+    onTransactionClick: (Int) -> Unit,
     onBack: () -> Unit
 ) {
     val card by viewModel.creditCard.collectAsState()
@@ -123,7 +124,7 @@ fun CreditDetailScreen(
                         Text(stringResource(R.string.blocked), style = MaterialTheme.typography.labelLarge)
                     }
                     items(blockedTransactions) { transaction ->
-                        CreditTransactionItem(transaction)
+                        CreditTransactionItem(transaction, onClick = { onTransactionClick(transaction.id) })
                     }
                 }
 
@@ -133,7 +134,7 @@ fun CreditDetailScreen(
                         Text(stringResource(R.string.latest_transactions), style = MaterialTheme.typography.labelLarge)
                     }
                     items(completedTransactions) { transaction ->
-                        CreditTransactionItem(transaction)
+                        CreditTransactionItem(transaction, onClick = { onTransactionClick(transaction.id) })
                     }
                 }
             }
@@ -155,12 +156,16 @@ fun InfoRow(
 }
 
 @Composable
-fun CreditTransactionItem(transaction: Transaction) {
+fun CreditTransactionItem(
+    transaction: Transaction,
+    onClick: () -> Unit = {}
+) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     val dateFormatter = SimpleDateFormat("MMMM d'th', yyyy", Locale.US)
     val isBlocked = transaction.status == TransactionStatus.BLOCKED || transaction.status == TransactionStatus.PENDING
 
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (isBlocked) Color(0xFFF2E6E1) else Color(0xFFF2D9D9).copy(alpha = 0.3f)

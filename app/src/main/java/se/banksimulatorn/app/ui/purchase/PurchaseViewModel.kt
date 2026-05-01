@@ -36,7 +36,13 @@ class PurchaseViewModel(
         }
     }
 
-    fun charge(merchant: String, transactionName: String, amount: Double) {
+    fun charge(
+        merchant: String,
+        transactionName: String,
+        amount: Double,
+        authorizedAt: Long,
+        chargedAt: Long?
+    ) {
         viewModelScope.launch {
             val card = _creditCard.value ?: return@launch
             if (amount <= 0) {
@@ -50,15 +56,19 @@ class PurchaseViewModel(
                     pendingAuthorizations = card.pendingAuthorizations + amount
                 )
 
+                val effectiveChargedAt = chargedAt ?: authorizedAt
+
                 val transaction = Transaction(
                     creditCardId = card.id,
                     amount = -amount,
-                    timestamp = System.currentTimeMillis(),
+                    timestamp = effectiveChargedAt,
                     description = transactionName,
                     merchant = merchant,
                     status = TransactionStatus.BLOCKED,
                     cardNumber = card.cardNumber.takeLast(4).let { "***-$it" },
-                    type = TransactionType.WITHDRAWAL
+                    type = TransactionType.WITHDRAWAL,
+                    authorizedAt = authorizedAt,
+                    chargedAt = effectiveChargedAt
                 )
 
                 bankDao.performCreditTransaction(transaction, updatedCard)

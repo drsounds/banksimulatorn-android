@@ -21,4 +21,7 @@ sealed interface Destination : NavKey {
 
     @Serializable
     data class PurchaseSimulator(val cardId: Int) : Destination
+
+    @Serializable
+    data class BlockedTransactionDetail(val transactionId: Int) : Destination
 }

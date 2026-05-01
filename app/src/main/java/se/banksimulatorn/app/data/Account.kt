@@ -10,7 +10,8 @@ data class Account(
     val accountNumber: String = "9 9999-9999 0",
     val balance: Double,
     val blockedAmount: Double = 0.0,
-    val type: AccountType
+    val type: AccountType,
+    val deletedAt: Long? = null
 )
 
 enum class AccountType {

@@ -31,7 +31,10 @@ data class Transaction(
     val merchant: String? = null,
     val status: TransactionStatus = TransactionStatus.COMPLETED,
     val cardNumber: String? = null,
-    val type: TransactionType
+    val type: TransactionType,
+    val authorizedAt: Long? = null,
+    val chargedAt: Long? = null,
+    val deletedAt: Long? = null
 )
 
 enum class TransactionStatus {

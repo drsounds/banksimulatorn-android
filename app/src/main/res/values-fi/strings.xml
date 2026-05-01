@@ -56,10 +56,14 @@
     <string name="payment">Maksu</string>
     <string name="error_amount_zero">Summan on oltava suurempi kuin nolla</string>
     <string name="error_insufficient_funds">Saldo ei riitä</string>
-    <string name="success_transaction">Tapahtuma suoritettu onnistuneesti</string>
-    <string name="success_charge">Veloitus onnistui</string>
     <string name="transfer_to">Siirrä kohteeseen</string>
     <string name="interest_rate">Korko (%1$s %%)</string>
     <string name="error_charge_failed">Veloitus epäonnistui: %1$s</string>
     <string name="error_transaction_failed">Tapahtuma epäonnistui: %1$s</string>
+    <string name="date_authorized">Valtuutuspäivä</string>
+    <string name="date_charged">Veloituspäivä</string>
+    <string name="transaction_id">Tapahtumatunnus</string>
+    <string name="charge_amount_now">Veloita summa nyt</string>
+    <string name="release_amount">Vapauta varaus</string>
+    <string name="success_release">Varaus vapautettu onnistuneesti</string>
 </resources>

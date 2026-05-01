@@ -56,10 +56,14 @@
     <string name="payment">Betaling</string>
     <string name="error_amount_zero">Beløpet må være over null</string>
     <string name="error_insufficient_funds">Utilstrekkelig dekning</string>
-    <string name="success_transaction">Transaksjonen ble fullført</string>
-    <string name="success_charge">Belastningen var vellykket</string>
     <string name="transfer_to">Overfør til</string>
     <string name="interest_rate">Rente (%1$s %%)</string>
     <string name="error_charge_failed">Belastning feilet: %1$s</string>
     <string name="error_transaction_failed">Transaksjon feilet: %1$s</string>
+    <string name="date_authorized">Autorisasjonsdato</string>
+    <string name="date_charged">Debiteringsdato</string>
+    <string name="transaction_id">Transaksjons-ID</string>
+    <string name="charge_amount_now">Belast beløp nå</string>
+    <string name="release_amount">Frigi beløp</string>
+    <string name="success_release">Beløp frigitt</string>
 </resources>

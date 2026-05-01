@@ -62,4 +62,10 @@
     <string name="interest_rate">Interest (%1$s %%)</string>
     <string name="error_charge_failed">Charge failed: %1$s</string>
     <string name="error_transaction_failed">Transaction failed: %1$s</string>
+    <string name="date_authorized">Date authorized</string>
+    <string name="date_charged">Date charged</string>
+    <string name="transaction_id">Transaction ID</string>
+    <string name="charge_amount_now">Charge amount now</string>
+    <string name="release_amount">Release amount</string>
+    <string name="success_release">Amount released successfully</string>
 </resources>

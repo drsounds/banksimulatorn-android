@@ -29,6 +29,8 @@ import se.banksimulatorn.app.ui.loans.LoanDetailScreen
 import se.banksimulatorn.app.ui.loans.LoanDetailViewModel
 import se.banksimulatorn.app.ui.purchase.PurchaseScreen
 import se.banksimulatorn.app.ui.purchase.PurchaseViewModel
+import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailScreen
+import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
 
 class MainActivity : ComponentActivity() {
@@ -76,6 +78,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onCreditClick = { id ->
                                     backStack.add(Destination.CreditDetail(id))
+                                },
+                                onTransactionClick = { id ->
+                                    backStack.add(Destination.BlockedTransactionDetail(id))
                                 }
                             )
                         }
@@ -118,6 +123,9 @@ class MainActivity : ComponentActivity() {
                                 onSimulatePurchase = { id ->
                                     backStack.add(Destination.PurchaseSimulator(id))
                                 },
+                                onTransactionClick = { id ->
+                                    backStack.add(Destination.BlockedTransactionDetail(id))
+                                },
                                 onBack = popSafe
                             )
                         }
@@ -127,6 +135,15 @@ class MainActivity : ComponentActivity() {
                             }
                             PurchaseScreen(
                                 viewModel = purchaseViewModel,
+                                onBack = popSafe
+                            )
+                        }
+                        entry<Destination.BlockedTransactionDetail> { key ->
+                            val blockedViewModel: BlockedTransactionDetailViewModel = viewModel {
+                                BlockedTransactionDetailViewModel(key.transactionId, bankDao)
+                            }
+                            BlockedTransactionDetailScreen(
+                                viewModel = blockedViewModel,
                                 onBack = popSafe
                             )
                         }
