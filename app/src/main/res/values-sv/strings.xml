@@ -57,7 +57,7 @@
     <string name="error_amount_zero">Beloppet måste vara större än noll</string>
     <string name="error_insufficient_funds">Otillräckliga medel</string>
     <string name="transfer_to">Överför till</string>
-    <string name="interest_rate">Ränta (%1$s %%)</string>
+    <string name="interest_rate_display">Ränta (%1$s %%)</string>
     <string name="error_charge_failed">Debitering misslyckades: %1$s</string>
     <string name="error_transaction_failed">Transaktionen misslyckades: %1$s</string>
     <string name="date_authorized">Auktoriseringsdatum</string>
@@ -66,4 +66,14 @@
     <string name="charge_amount_now">Debitera belopp nu</string>
     <string name="release_amount">Släpp reservation</string>
     <string name="success_release">Reservation släppt</string>
+    <string name="account_settings">Kontoinställningar</string>
+    <string name="positive_interest_rate">Positiv ränta (%)</string>
+    <string name="overdraft_interest_rate">Överdragsränta (%)</string>
+    <string name="interest_capitalization_day">Kapitaliseringsdag (1&#8211;31)</string>
+    <string name="invoice_cycle_day">Faktureringsdag (1&#8211;31)</string>
+    <string name="bnpl_mode">BNPL-läge (Individuell avstämning)</string>
+    <string name="loan_fee">Månadsavgift lån</string>
+    <string name="interest_rate">Räntesats (%)</string>
+    <string name="save_settings">Spara inställningar</string>
+    <string name="settings_saved">Inställningar sparade</string>
 </resources>

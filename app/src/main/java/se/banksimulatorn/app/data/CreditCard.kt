@@ -11,5 +11,8 @@ data class CreditCard(
     val creditLimit: Double,
     val usedCredit: Double,
     val interestRate: Double,
-    val pendingAuthorizations: Double
+    val pendingAuthorizations: Double,
+    val invoiceCycleDay: Int = 1,
+    val isBnplMode: Boolean = false,
+    val pendingInterest: Double = 0.0
 )

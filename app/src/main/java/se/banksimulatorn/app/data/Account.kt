@@ -12,6 +12,10 @@ data class Account(
     val blockedAmount: Double = 0.0,
     val type: AccountType,
     val interestRate: Double = 0.0,
+    val positiveInterestRate: Double = 0.0,
+    val overdraftInterestRate: Double = 0.0,
+    val interestCapitalizationDay: Int = 1,
+    val pendingInterest: Double = 0.0,
     val deletedAt: Long? = null
 )
 

@@ -44,12 +44,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.material.icons.rounded.Settings
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreditDetailScreen(
     viewModel: CreditDetailViewModel,
     onSimulatePurchase: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
+    onSettingsClick: (Int) -> Unit,
     onBack: () -> Unit
 ) {
     val card by viewModel.creditCard.collectAsState()
@@ -63,6 +66,13 @@ fun CreditDetailScreen(
                     Column {
                         Text(stringResource(R.string.credits), style = MaterialTheme.typography.labelMedium)
                         Text(card?.cardNumber ?: "", style = MaterialTheme.typography.titleMedium)
+                    }
+                },
+                actions = {
+                    card?.let { c ->
+                        IconButton(onClick = { onSettingsClick(c.id) }) {
+                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
+                        }
                     }
                 },
                 navigationIcon = {

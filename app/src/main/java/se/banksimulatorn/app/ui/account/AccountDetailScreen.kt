@@ -47,11 +47,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.material.icons.rounded.Settings
+import se.banksimulatorn.app.navigation.Destination
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountDetailScreen(
     viewModel: AccountDetailViewModel,
     onNewTransactionClick: (Int) -> Unit,
+    onSettingsClick: (Int) -> Unit,
     onBack: () -> Unit
 ) {
     val account by viewModel.account.collectAsState()
@@ -67,6 +71,13 @@ fun AccountDetailScreen(
                         stringResource(R.string.app_name),
                         style = MaterialTheme.typography.titleMedium,
                     )
+                },
+                actions = {
+                    account?.let { acc ->
+                        IconButton(onClick = { onSettingsClick(acc.id) }) {
+                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

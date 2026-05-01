@@ -24,4 +24,11 @@ sealed interface Destination : NavKey {
 
     @Serializable
     data class BlockedTransactionDetail(val transactionId: Int) : Destination
+
+    @Serializable
+    data class AccountSettings(val id: Int, val type: AccountSettingsType) : Destination
+}
+
+enum class AccountSettingsType {
+    ACCOUNT, CREDIT_CARD, LOAN
 }

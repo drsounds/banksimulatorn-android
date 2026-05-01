@@ -59,7 +59,7 @@
     <string name="success_transaction">Transaction completed successfully</string>
     <string name="success_charge">Charge successful</string>
     <string name="transfer_to">Transfer to</string>
-    <string name="interest_rate">Interest (%1$s %%)</string>
+    <string name="interest_rate_display">Interest (%1$s %%)</string>
     <string name="error_charge_failed">Charge failed: %1$s</string>
     <string name="error_transaction_failed">Transaction failed: %1$s</string>
     <string name="date_authorized">Date authorized</string>
@@ -68,4 +68,14 @@
     <string name="charge_amount_now">Charge amount now</string>
     <string name="release_amount">Release amount</string>
     <string name="success_release">Amount released successfully</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="positive_interest_rate">Positive Interest Rate (%)</string>
+    <string name="overdraft_interest_rate">Overdraft Interest Rate (%)</string>
+    <string name="interest_capitalization_day">Interest Capitalization Day (1&#8211;31)</string>
+    <string name="invoice_cycle_day">Invoice Cycle Day (1&#8211;31)</string>
+    <string name="bnpl_mode">BNPL Mode (Individual Purchase Reconciliation)</string>
+    <string name="loan_fee">Monthly Loan Fee</string>
+    <string name="interest_rate">Interest Rate (%)</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="settings_saved">Settings saved</string>
 </resources>

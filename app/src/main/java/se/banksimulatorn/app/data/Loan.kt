@@ -11,5 +11,7 @@ data class Loan(
     val balance: Double,
     val pendingInterest: Double,
     val nextPaymentAmount: Double,
-    val nextPaymentDate: String
+    val nextPaymentDate: String,
+    val invoiceCycleDay: Int = 1,
+    val loanFee: Double = 0.0
 )

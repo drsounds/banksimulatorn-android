@@ -18,6 +18,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entryProvider
 import se.banksimulatorn.app.data.BankDatabase
+import se.banksimulatorn.app.navigation.AccountSettingsType
 import se.banksimulatorn.app.navigation.Destination
 import se.banksimulatorn.app.ui.dashboard.DashboardScreen
 import se.banksimulatorn.app.ui.dashboard.DashboardViewModel
@@ -33,6 +34,8 @@ import se.banksimulatorn.app.ui.purchase.PurchaseScreen
 import se.banksimulatorn.app.ui.purchase.PurchaseViewModel
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailScreen
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewModel
+import se.banksimulatorn.app.ui.settings.AccountSettingsScreen
+import se.banksimulatorn.app.ui.settings.AccountSettingsViewModel
 import se.banksimulatorn.app.ui.timemachine.TimeMachineBar
 import se.banksimulatorn.app.ui.timemachine.TimeMachineViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
@@ -108,6 +111,9 @@ class MainActivity : ComponentActivity() {
                                     onNewTransactionClick = { id ->
                                         backStack.add(Destination.TransactionSimulator(id))
                                     },
+                                    onSettingsClick = { id ->
+                                        backStack.add(Destination.AccountSettings(id, AccountSettingsType.ACCOUNT))
+                                    },
                                     onBack = popSafe
                                 )
                             }
@@ -117,6 +123,9 @@ class MainActivity : ComponentActivity() {
                                 }
                                 LoanDetailScreen(
                                     viewModel = loanViewModel,
+                                    onSettingsClick = { id ->
+                                        backStack.add(Destination.AccountSettings(id, AccountSettingsType.LOAN))
+                                    },
                                     onBack = popSafe
                                 )
                             }
@@ -131,6 +140,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onTransactionClick = { id ->
                                         backStack.add(Destination.BlockedTransactionDetail(id))
+                                    },
+                                    onSettingsClick = { id ->
+                                        backStack.add(Destination.AccountSettings(id, AccountSettingsType.CREDIT_CARD))
                                     },
                                     onBack = popSafe
                                 )
@@ -150,6 +162,15 @@ class MainActivity : ComponentActivity() {
                                 }
                                 BlockedTransactionDetailScreen(
                                     viewModel = blockedViewModel,
+                                    onBack = popSafe
+                                )
+                            }
+                            entry<Destination.AccountSettings> { key ->
+                                val settingsViewModel: AccountSettingsViewModel = viewModel {
+                                    AccountSettingsViewModel(key.id, key.type, bankDao)
+                                }
+                                AccountSettingsScreen(
+                                    viewModel = settingsViewModel,
                                     onBack = popSafe
                                 )
                             }

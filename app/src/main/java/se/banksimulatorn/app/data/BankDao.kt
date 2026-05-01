@@ -46,6 +46,9 @@ interface BankDao {
     @Insert
     suspend fun insertLoan(loan: Loan)
 
+    @Update
+    suspend fun updateLoan(loan: Loan)
+
     // Credit Cards
     @Query("SELECT * FROM credit_cards")
     fun getAllCreditCards(): Flow<List<CreditCard>>
@@ -113,6 +116,12 @@ interface BankDao {
 
     @Query("SELECT * FROM credit_cards")
     suspend fun getAllCreditCardsSync(): List<CreditCard>
+
+    @Query("SELECT * FROM loans")
+    suspend fun getAllLoansSync(): List<Loan>
+
+    @Query("SELECT * FROM transactions WHERE creditCardId = :cardId AND isReconciled = 0 AND deletedAt IS NULL")
+    suspend fun getUnreconciledCreditTransactions(cardId: Int): List<Transaction>
 
     @RoomTransaction
     suspend fun chargeBlockedTransaction(transactionId: Int, cardId: Int, amount: Double, timestamp: Long) {

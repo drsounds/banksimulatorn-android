@@ -33,10 +33,13 @@ import se.banksimulatorn.app.R
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.material.icons.rounded.Settings
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoanDetailScreen(
     viewModel: LoanDetailViewModel,
+    onSettingsClick: (Int) -> Unit,
     onBack: () -> Unit
 ) {
     val loan by viewModel.loan.collectAsState()
@@ -49,6 +52,13 @@ fun LoanDetailScreen(
                     Column {
                         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelSmall)
                         Text(stringResource(R.string.loan), style = MaterialTheme.typography.titleMedium)
+                    }
+                },
+                actions = {
+                    loan?.let { l ->
+                        IconButton(onClick = { onSettingsClick(l.id) }) {
+                            Icon(Icons.Rounded.Settings, contentDescription = stringResource(R.string.account_settings))
+                        }
                     }
                 },
                 navigationIcon = {

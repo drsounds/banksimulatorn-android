@@ -57,7 +57,7 @@
     <string name="error_amount_zero">Summan on oltava suurempi kuin nolla</string>
     <string name="error_insufficient_funds">Saldo ei riitä</string>
     <string name="transfer_to">Siirrä kohteeseen</string>
-    <string name="interest_rate">Korko (%1$s %%)</string>
+    <string name="interest_rate_display">Korko (%1$s %%)</string>
     <string name="error_charge_failed">Veloitus epäonnistui: %1$s</string>
     <string name="error_transaction_failed">Tapahtuma epäonnistui: %1$s</string>
     <string name="date_authorized">Valtuutuspäivä</string>
@@ -66,4 +66,14 @@
     <string name="charge_amount_now">Veloita summa nyt</string>
     <string name="release_amount">Vapauta varaus</string>
     <string name="success_release">Varaus vapautettu onnistuneesti</string>
+    <string name="account_settings">Tiliasetukset</string>
+    <string name="positive_interest_rate">Positiivinen korko (%)</string>
+    <string name="overdraft_interest_rate">Ylityskorko (%)</string>
+    <string name="interest_capitalization_day">Pääomituspäivä (1&#8211;31)</string>
+    <string name="invoice_cycle_day">Laskutuspäivä (1&#8211;31)</string>
+    <string name="bnpl_mode">BNPL-tila (Yksittäisten ostosten täsmäytys)</string>
+    <string name="loan_fee">Kuukausittainen lainamaksu</string>
+    <string name="interest_rate">Korkoprosentti (%)</string>
+    <string name="save_settings">Tallenna asetukset</string>
+    <string name="settings_saved">Asetukset tallennettu</string>
 </resources>

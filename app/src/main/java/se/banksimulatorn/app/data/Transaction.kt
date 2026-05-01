@@ -34,7 +34,9 @@ data class Transaction(
     val type: TransactionType,
     val authorizedAt: Long? = null,
     val chargedAt: Long? = null,
-    val deletedAt: Long? = null
+    val deletedAt: Long? = null,
+    val remainingDebt: Double? = null,
+    val isReconciled: Boolean = false
 )
 
 enum class TransactionStatus {
