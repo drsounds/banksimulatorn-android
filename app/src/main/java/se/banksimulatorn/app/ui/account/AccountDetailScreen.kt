@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
+import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat

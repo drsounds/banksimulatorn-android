@@ -1,5 +1,6 @@
 package se.banksimulatorn.app.ui.create
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -64,14 +65,79 @@ fun CreateAccountScreen(
                     onClick = { selectedType = "LOAN" },
                     shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
                 ) { Text(stringResource(R.string.loans)) }
+                SegmentedButton(
+                    selected = selectedType == "CARD",
+                    onClick = { selectedType = "CARD" },
+                    shape = SegmentedButtonDefaults.itemShape(index = 3, count = 4)
+                ) { Text("Card") }
             }
 
             when (selectedType) {
                 "ACCOUNT" -> BankAccountForm(onSave = viewModel::createBankAccount)
                 "CREDIT" -> RevolvingCreditForm(onSave = viewModel::createRevolvingCredit)
                 "LOAN" -> LoanForm(onSave = viewModel::createLoan)
+                "CARD" -> {
+                    val accounts by viewModel.allAccounts.collectAsState()
+                    val credits by viewModel.allRevolvingCredits.collectAsState()
+                    CardForm(
+                        accounts = accounts,
+                        credits = credits,
+                        onSave = viewModel::createCard
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+fun CardForm(
+    accounts: List<Account>,
+    credits: List<RevolvingCreditAccount>,
+    onSave: (String, String, CardType, Int?, Int?) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var number by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(CardType.DEBIT) }
+    var linkedId by remember { mutableStateOf<Int?>(null) }
+
+    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Card Name") }, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(value = number, onValueChange = { number = it }, label = { Text("Card Number") }, modifier = Modifier.fillMaxWidth())
+
+    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        RadioButton(selected = type == CardType.DEBIT, onClick = { type = CardType.DEBIT; linkedId = null })
+        Text("Debit")
+        Spacer(modifier = Modifier.width(16.dp))
+        RadioButton(selected = type == CardType.CREDIT, onClick = { type = CardType.CREDIT; linkedId = null })
+        Text("Credit")
+    }
+
+    Text("Link to:", style = MaterialTheme.typography.titleMedium)
+    if (type == CardType.DEBIT) {
+        accounts.forEach { acc ->
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.clickable { linkedId = acc.id }) {
+                RadioButton(selected = linkedId == acc.id, onClick = { linkedId = acc.id })
+                Text(acc.name)
+            }
+        }
+    } else {
+        credits.forEach { acc ->
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.clickable { linkedId = acc.id }) {
+                RadioButton(selected = linkedId == acc.id, onClick = { linkedId = acc.id })
+                Text(acc.name)
+            }
+        }
+    }
+
+    Button(
+        onClick = { 
+            if (type == CardType.DEBIT) onSave(name, number, type, linkedId, null)
+            else onSave(name, number, type, null, linkedId)
+        },
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge
+    ) {
+        Text("Create Card")
     }
 }
 

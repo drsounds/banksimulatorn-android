@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
@@ -72,6 +73,18 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    floatingActionButton = {
+                        val currentDestination = backStack.lastOrNull()
+                        if (currentDestination == Destination.Dashboard) {
+                            LargeFloatingActionButton(
+                                onClick = { backStack.add(Destination.CreateAccount) },
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ) {
+                                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.create_new))
+                            }
+                        }
+                    },
                     bottomBar = {
                         Column {
                             TimeMachineBar(

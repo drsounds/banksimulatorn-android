@@ -2,32 +2,14 @@ package se.banksimulatorn.app.ui.history
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
@@ -48,7 +30,6 @@ import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.Transaction
-import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -58,7 +39,8 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val accounts by viewModel.accounts.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
@@ -73,23 +55,21 @@ fun HistoryScreen(
         }
     }
 
-    ListDetailPaneScaffold(
-        directive = navigator.scaffoldDirective,
-        value = navigator.scaffoldValue,
-        listPane = {
-            AnimatedPane {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text(stringResource(R.string.transaction_history)) },
-                            navigationIcon = {
-                                IconButton(onClick = onBack) {
-                                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
-                                }
-                            }
-                        )
-                    }
-                ) { innerPadding ->
+    Column(modifier = modifier) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.transaction_history)) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            }
+        )
+
+        ListDetailPaneScaffold(
+            directive = navigator.scaffoldDirective,
+            value = navigator.scaffoldValue,
+            listPane = {
+                AnimatedPane {
                     AccountList(
                         accounts = accounts,
                         selectedAccountId = selectedAccountId,
@@ -98,28 +78,25 @@ fun HistoryScreen(
                             scope.launch {
                                 navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, id)
                             }
-                        },
-                        modifier = Modifier.padding(innerPadding)
+                        }
                     )
                 }
-            }
-        },
-        detailPane = {
-            AnimatedPane {
-                val selectedAccount = accounts.find { it.id == selectedAccountId }
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { 
-                                val title = selectedAccount?.let { acc ->
-                                    if (acc.name == "Checking") stringResource(R.string.deposit)
-                                    else if (acc.name == "Savings") stringResource(R.string.savings_account)
-                                    else acc.name
-                                } ?: stringResource(R.string.details)
-                                Text(title) 
-                            },
-                            navigationIcon = {
-                                if (navigator.canNavigateBack()) {
+            },
+            detailPane = {
+                AnimatedPane {
+                    val selectedAccount = accounts.find { it.id == selectedAccountId }
+                    Column {
+                        if (navigator.canNavigateBack()) {
+                            TopAppBar(
+                                title = { 
+                                    val title = selectedAccount?.let { acc ->
+                                        if (acc.name == "Checking") stringResource(R.string.checking)
+                                        else if (acc.name == "Savings") stringResource(R.string.savings)
+                                        else acc.name
+                                    } ?: stringResource(R.string.details)
+                                    Text(title) 
+                                },
+                                navigationIcon = {
                                     IconButton(onClick = { 
                                         scope.launch {
                                             navigator.navigateBack()
@@ -128,22 +105,18 @@ fun HistoryScreen(
                                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back_to_list))
                                     }
                                 }
-                            }
-                        )
-                    }
-                ) { innerPadding ->
-                    if (selectedAccount != null) {
-                        TransactionList(
-                            transactions = transactions,
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                    } else {
-                        EmptyDetailState()
+                            )
+                        }
+                        if (selectedAccount != null) {
+                            TransactionList(transactions = transactions)
+                        } else {
+                            EmptyDetailState()
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
@@ -174,9 +147,11 @@ fun AccountList(
             ) {
                 ListItem(
                     headlineContent = { 
-                        val name = if (account.name == "Checking") stringResource(R.string.deposit)
-                                   else if (account.name == "Savings") stringResource(R.string.savings_account)
-                                   else account.name
+                        val name = when (account.name) {
+                            "Checking" -> stringResource(R.string.checking)
+                            "Savings" -> stringResource(R.string.savings)
+                            else -> account.name
+                        }
                         Text(name, fontWeight = FontWeight.Bold) 
                     },
                     supportingContent = { 
@@ -229,7 +204,7 @@ fun TransactionList(
             contentPadding = PaddingValues(16.dp)
         ) {
             items(transactions) { transaction ->
-                TransactionItem(transaction)
+                TransactionItemDesignDesign(transaction)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
         }
@@ -237,7 +212,7 @@ fun TransactionList(
 }
 
 @Composable
-fun TransactionItem(transaction: Transaction) {
+fun TransactionItemDesignDesign(transaction: Transaction) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 

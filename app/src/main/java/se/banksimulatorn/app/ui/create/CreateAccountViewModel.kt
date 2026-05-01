@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.*
 
@@ -12,6 +15,12 @@ class CreateAccountViewModel(private val bankDao: BankDao) : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<CreateUiEvent>()
     val uiEvent: SharedFlow<CreateUiEvent> = _uiEvent.asSharedFlow()
+
+    val allAccounts: StateFlow<List<Account>> = bankDao.getAllAccounts()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allRevolvingCredits: StateFlow<List<RevolvingCreditAccount>> = bankDao.getAllRevolvingCredits()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun createBankAccount(name: String, number: String, balance: Double, type: AccountType) {
         viewModelScope.launch {
