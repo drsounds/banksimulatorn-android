@@ -71,18 +71,55 @@ interface BankDao {
     @Query("SELECT * FROM transactions WHERE deletedAt IS NULL ORDER BY timestamp DESC")
     fun getAllTransactions(): Flow<List<Transaction>>
 
+    // Time Settings
+    @Query("SELECT * FROM time_settings WHERE id = 1")
+    fun getTimeSettings(): Flow<TimeSettings?>
+
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
+    suspend fun updateTimeSettings(settings: TimeSettings)
+
+    @Query("SELECT * FROM accounts WHERE deletedAt IS NULL")
+    suspend fun getAllAccountsSync(): List<Account>
+
+    @Query("SELECT * FROM transactions WHERE status = 'BLOCKED' AND deletedAt IS NULL")
+    suspend fun getBlockedTransactionsSync(): List<Transaction>
+
+    @Query("SELECT * FROM transactions WHERE type = 'INTEREST' AND timestamp > :timestamp")
+    suspend fun getFutureInterestTransactions(timestamp: Long): List<Transaction>
+
+    @Query("SELECT * FROM transactions WHERE status = 'COMPLETED' AND chargedAt > :timestamp")
+    suspend fun getFutureChargedTransactions(timestamp: Long): List<Transaction>
+
+    @Query("UPDATE transactions SET deletedAt = :timestamp WHERE type = 'INTEREST' AND timestamp > :limit")
+    suspend fun softDeleteFutureInterest(limit: Long, timestamp: Long)
+
+    @Query("UPDATE transactions SET status = 'BLOCKED' WHERE status = 'COMPLETED' AND chargedAt > :timestamp")
+    suspend fun revertFutureChargedTransactions(timestamp: Long)
+
+    @Query("UPDATE accounts SET balance = balance + :amount WHERE id = :accountId")
+    suspend fun updateAccountBalance(accountId: Int, amount: Double)
+
+    @Query("UPDATE credit_cards SET usedCredit = usedCredit + :amount WHERE id = :cardId")
+    suspend fun updateCreditCardUsed(cardId: Int, amount: Double)
+
+    @Query("UPDATE credit_cards SET pendingAuthorizations = pendingAuthorizations + :amount WHERE id = :cardId")
+    suspend fun updateCreditCardPending(cardId: Int, amount: Double)
+
     @Query("UPDATE transactions SET deletedAt = :timestamp WHERE id = :transactionId")
     suspend fun softDeleteTransaction(transactionId: Int, timestamp: Long)
 
     @Query("SELECT * FROM transactions WHERE id = :transactionId AND deletedAt IS NULL")
     suspend fun getTransactionById(transactionId: Int): Transaction?
 
+    @Query("SELECT * FROM credit_cards")
+    suspend fun getAllCreditCardsSync(): List<CreditCard>
+
     @RoomTransaction
-    suspend fun chargeBlockedTransaction(transactionId: Int, cardId: Int, amount: Double) {
+    suspend fun chargeBlockedTransaction(transactionId: Int, cardId: Int, amount: Double, timestamp: Long) {
         val transaction = getTransactionById(transactionId) ?: return
         val card = getCreditCardById(cardId) ?: return
         
-        updateTransaction(transaction.copy(status = TransactionStatus.COMPLETED, chargedAt = System.currentTimeMillis()))
+        updateTransaction(transaction.copy(status = TransactionStatus.COMPLETED, chargedAt = timestamp, timestamp = timestamp))
         updateCreditCard(card.copy(pendingAuthorizations = card.pendingAuthorizations - Math.abs(amount)))
     }
     

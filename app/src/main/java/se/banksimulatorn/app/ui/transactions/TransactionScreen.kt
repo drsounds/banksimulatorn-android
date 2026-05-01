@@ -238,6 +238,7 @@ fun TransactionScreen(
                         TransactionType.DEPOSIT -> MaterialTheme.colorScheme.primary
                         TransactionType.WITHDRAWAL -> MaterialTheme.colorScheme.error
                         TransactionType.TRANSFER -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.secondary
                     }
                 )
             ) {
@@ -245,6 +246,8 @@ fun TransactionScreen(
                     TransactionType.DEPOSIT -> R.string.deposit
                     TransactionType.WITHDRAWAL -> R.string.withdraw
                     TransactionType.TRANSFER -> R.string.transfer
+                    TransactionType.INTEREST -> R.string.interest
+                    TransactionType.INSTALLMENT -> R.string.installment
                 })
                 Text(
                     text = stringResource(R.string.confirm_transaction, typeString),

@@ -57,7 +57,8 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                         accountNumber = "9 9999-9999 0",
                         balance = 1000.0,
                         blockedAmount = 500.0,
-                        type = AccountType.CHECKING
+                        type = AccountType.CHECKING,
+                        interestRate = 0.5
                     )
                 )
                 bankDao.insertAccount(
@@ -67,7 +68,8 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                         accountNumber = "9 8888-8888 1",
                         balance = 28842.0,
                         blockedAmount = 0.0,
-                        type = AccountType.CHECKING
+                        type = AccountType.CHECKING,
+                        interestRate = 0.0
                     )
                 )
                 bankDao.insertAccount(
@@ -77,7 +79,8 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
                         accountNumber = "9 7777-7777 2",
                         balance = 5842.0,
                         blockedAmount = 0.0,
-                        type = AccountType.SAVINGS
+                        type = AccountType.SAVINGS,
+                        interestRate = 3.2
                     )
                 )
 

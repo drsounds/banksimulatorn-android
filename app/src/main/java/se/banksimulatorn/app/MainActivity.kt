@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -31,6 +33,8 @@ import se.banksimulatorn.app.ui.purchase.PurchaseScreen
 import se.banksimulatorn.app.ui.purchase.PurchaseViewModel
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailScreen
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewModel
+import se.banksimulatorn.app.ui.timemachine.TimeMachineBar
+import se.banksimulatorn.app.ui.timemachine.TimeMachineViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,6 +48,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             BankingSimulatorTheme {
                 val backStack = rememberNavBackStack(Destination.Dashboard as NavKey)
+                val timeMachineViewModel: TimeMachineViewModel = viewModel { TimeMachineViewModel(bankDao) }
                 
                 val popSafe = {
                     if (backStack.size > 1) {
@@ -51,115 +56,122 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                val entryProvider = remember {
-                    entryProvider<NavKey> {
-                        entry<Destination.Dashboard> {
-                            val dashboardViewModel: DashboardViewModel = viewModel { 
-                                DashboardViewModel(bankDao) 
-                            }
-                            DashboardScreen(
-                                viewModel = dashboardViewModel,
-                                onAccountClick = { id ->
-                                    backStack.add(Destination.AccountDetail(id))
-                                },
-                                onHistoryClick = {
-                                    dashboardViewModel.accounts.value.firstOrNull()?.let {
-                                        backStack.add(Destination.AccountDetail(it.id))
-                                    }
-                                },
-                                onNewTransactionClick = { id ->
-                                    backStack.add(Destination.TransactionSimulator(id))
-                                },
-                                onNewPurchaseClick = { id ->
-                                    backStack.add(Destination.PurchaseSimulator(id))
-                                },
-                                onLoanClick = { id ->
-                                    backStack.add(Destination.LoanDetail(id))
-                                },
-                                onCreditClick = { id ->
-                                    backStack.add(Destination.CreditDetail(id))
-                                },
-                                onTransactionClick = { id ->
-                                    backStack.add(Destination.BlockedTransactionDetail(id))
+                Box(modifier = Modifier.fillMaxSize()) {
+                    val entryProvider = remember {
+                        entryProvider<NavKey> {
+                            entry<Destination.Dashboard> {
+                                val dashboardViewModel: DashboardViewModel = viewModel { 
+                                    DashboardViewModel(bankDao) 
                                 }
-                            )
-                        }
-                        entry<Destination.TransactionSimulator> { key ->
-                            val transactionViewModel: TransactionViewModel = viewModel {
-                                TransactionViewModel(key.accountId, bankDao)
+                                DashboardScreen(
+                                    viewModel = dashboardViewModel,
+                                    onAccountClick = { id ->
+                                        backStack.add(Destination.AccountDetail(id))
+                                    },
+                                    onHistoryClick = {
+                                        dashboardViewModel.accounts.value.firstOrNull()?.let {
+                                            backStack.add(Destination.AccountDetail(it.id))
+                                        }
+                                    },
+                                    onNewTransactionClick = { id ->
+                                        backStack.add(Destination.TransactionSimulator(id))
+                                    },
+                                    onNewPurchaseClick = { id ->
+                                        backStack.add(Destination.PurchaseSimulator(id))
+                                    },
+                                    onLoanClick = { id ->
+                                        backStack.add(Destination.LoanDetail(id))
+                                    },
+                                    onCreditClick = { id ->
+                                        backStack.add(Destination.CreditDetail(id))
+                                    },
+                                    onTransactionClick = { id ->
+                                        backStack.add(Destination.BlockedTransactionDetail(id))
+                                    }
+                                )
                             }
-                            TransactionScreen(
-                                viewModel = transactionViewModel,
-                                onBack = popSafe
-                            )
-                        }
-                        entry<Destination.AccountDetail> { key ->
-                            val accountDetailViewModel: AccountDetailViewModel = viewModel {
-                                AccountDetailViewModel(key.accountId, bankDao)
+                            entry<Destination.TransactionSimulator> { key ->
+                                val transactionViewModel: TransactionViewModel = viewModel {
+                                    TransactionViewModel(key.accountId, bankDao)
+                                }
+                                TransactionScreen(
+                                    viewModel = transactionViewModel,
+                                    onBack = popSafe
+                                )
                             }
-                            AccountDetailScreen(
-                                viewModel = accountDetailViewModel,
-                                onNewTransactionClick = { id ->
-                                    backStack.add(Destination.TransactionSimulator(id))
-                                },
-                                onBack = popSafe
-                            )
-                        }
-                        entry<Destination.LoanDetail> { key ->
-                            val loanViewModel: LoanDetailViewModel = viewModel {
-                                LoanDetailViewModel(key.loanId, bankDao)
+                            entry<Destination.AccountDetail> { key ->
+                                val accountDetailViewModel: AccountDetailViewModel = viewModel {
+                                    AccountDetailViewModel(key.accountId, bankDao)
+                                }
+                                AccountDetailScreen(
+                                    viewModel = accountDetailViewModel,
+                                    onNewTransactionClick = { id ->
+                                        backStack.add(Destination.TransactionSimulator(id))
+                                    },
+                                    onBack = popSafe
+                                )
                             }
-                            LoanDetailScreen(
-                                viewModel = loanViewModel,
-                                onBack = popSafe
-                            )
-                        }
-                        entry<Destination.CreditDetail> { key ->
-                            val creditViewModel: CreditDetailViewModel = viewModel {
-                                CreditDetailViewModel(key.cardId, bankDao)
+                            entry<Destination.LoanDetail> { key ->
+                                val loanViewModel: LoanDetailViewModel = viewModel {
+                                    LoanDetailViewModel(key.loanId, bankDao)
+                                }
+                                LoanDetailScreen(
+                                    viewModel = loanViewModel,
+                                    onBack = popSafe
+                                )
                             }
-                            CreditDetailScreen(
-                                viewModel = creditViewModel,
-                                onSimulatePurchase = { id ->
-                                    backStack.add(Destination.PurchaseSimulator(id))
-                                },
-                                onTransactionClick = { id ->
-                                    backStack.add(Destination.BlockedTransactionDetail(id))
-                                },
-                                onBack = popSafe
-                            )
-                        }
-                        entry<Destination.PurchaseSimulator> { key ->
-                            val purchaseViewModel: PurchaseViewModel = viewModel {
-                                PurchaseViewModel(key.cardId, bankDao)
+                            entry<Destination.CreditDetail> { key ->
+                                val creditViewModel: CreditDetailViewModel = viewModel {
+                                    CreditDetailViewModel(key.cardId, bankDao)
+                                }
+                                CreditDetailScreen(
+                                    viewModel = creditViewModel,
+                                    onSimulatePurchase = { id ->
+                                        backStack.add(Destination.PurchaseSimulator(id))
+                                    },
+                                    onTransactionClick = { id ->
+                                        backStack.add(Destination.BlockedTransactionDetail(id))
+                                    },
+                                    onBack = popSafe
+                                )
                             }
-                            PurchaseScreen(
-                                viewModel = purchaseViewModel,
-                                onBack = popSafe
-                            )
-                        }
-                        entry<Destination.BlockedTransactionDetail> { key ->
-                            val blockedViewModel: BlockedTransactionDetailViewModel = viewModel {
-                                BlockedTransactionDetailViewModel(key.transactionId, bankDao)
+                            entry<Destination.PurchaseSimulator> { key ->
+                                val purchaseViewModel: PurchaseViewModel = viewModel {
+                                    PurchaseViewModel(key.cardId, bankDao)
+                                }
+                                PurchaseScreen(
+                                    viewModel = purchaseViewModel,
+                                    onBack = popSafe
+                                )
                             }
-                            BlockedTransactionDetailScreen(
-                                viewModel = blockedViewModel,
-                                onBack = popSafe
-                            )
+                            entry<Destination.BlockedTransactionDetail> { key ->
+                                val blockedViewModel: BlockedTransactionDetailViewModel = viewModel {
+                                    BlockedTransactionDetailViewModel(key.transactionId, bankDao)
+                                }
+                                BlockedTransactionDetailScreen(
+                                    viewModel = blockedViewModel,
+                                    onBack = popSafe
+                                )
+                            }
                         }
                     }
-                }
 
-                NavDisplay(
-                    backStack = backStack,
-                    onBack = popSafe,
-                    modifier = Modifier.fillMaxSize(),
-                    entryDecorators = listOf(
-                        rememberSaveableStateHolderNavEntryDecorator(),
-                        rememberViewModelStoreNavEntryDecorator()
-                    ),
-                    entryProvider = entryProvider
-                )
+                    NavDisplay(
+                        backStack = backStack,
+                        onBack = popSafe,
+                        modifier = Modifier.fillMaxSize(),
+                        entryDecorators = listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator()
+                        ),
+                        entryProvider = entryProvider
+                    )
+
+                    TimeMachineBar(
+                        viewModel = timeMachineViewModel,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ data class Account(
     val balance: Double,
     val blockedAmount: Double = 0.0,
     val type: AccountType,
+    val interestRate: Double = 0.0,
     val deletedAt: Long? = null
 )
 

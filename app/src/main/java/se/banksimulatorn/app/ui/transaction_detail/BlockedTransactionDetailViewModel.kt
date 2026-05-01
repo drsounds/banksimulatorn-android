@@ -39,7 +39,7 @@ class BlockedTransactionDetailViewModel(
             val t = _transaction.value ?: return@launch
             val cardId = t.creditCardId ?: return@launch
             try {
-                bankDao.chargeBlockedTransaction(t.id, cardId, t.amount)
+                bankDao.chargeBlockedTransaction(t.id, cardId, t.amount, System.currentTimeMillis())
                 _uiEvent.emit(BlockedUiEvent.Success(R.string.success_charge))
                 _uiEvent.emit(BlockedUiEvent.NavigateBack)
             } catch (e: Exception) {

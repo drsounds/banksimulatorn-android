@@ -42,5 +42,5 @@ enum class TransactionStatus {
 }
 
 enum class TransactionType {
-    DEPOSIT, WITHDRAWAL, TRANSFER
+    DEPOSIT, WITHDRAWAL, TRANSFER, INTEREST, INSTALLMENT
 }
