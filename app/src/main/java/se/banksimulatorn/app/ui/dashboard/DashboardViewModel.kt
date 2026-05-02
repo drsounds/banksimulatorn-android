@@ -12,8 +12,15 @@ import se.banksimulatorn.app.data.Loan
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Invoice
+import kotlinx.coroutines.launch
 
 class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            bankDao.seedDefaultData()
+        }
+    }
 
     val accounts: StateFlow<List<Account>> = bankDao.getAllAccounts()
         .stateIn(

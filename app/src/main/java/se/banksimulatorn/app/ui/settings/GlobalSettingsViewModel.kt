@@ -50,6 +50,7 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
     fun resetSystem() {
         viewModelScope.launch {
             bankDao.clearAllData()
+            bankDao.seedDefaultData()
         }
     }
 

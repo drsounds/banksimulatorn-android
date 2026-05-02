@@ -128,6 +128,9 @@ interface BankDao {
     @Query("SELECT * FROM global_settings WHERE id = 1")
     fun getGlobalSettings(): Flow<GlobalSettings?>
 
+    @Query("SELECT COUNT(*) FROM global_settings")
+    suspend fun hasGlobalSettings(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateGlobalSettings(settings: GlobalSettings)
 
@@ -264,4 +267,44 @@ interface BankDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecurringTasks(tasks: List<RecurringTask>)
+
+    @RoomTransaction
+    suspend fun seedDefaultData() {
+        if (hasGlobalSettings() > 0) return
+
+        val defaultCurrency = "SEK"
+        updateGlobalSettings(GlobalSettings(currency = defaultCurrency))
+        
+        val isNordic = listOf("SEK", "NOK", "DKK").contains(defaultCurrency)
+        val scale = if (isNordic) 1.0 else 0.1
+        
+        val deposit1 = 1000.0 * scale
+        val deposit2 = 16000.0 * scale
+        val now = System.currentTimeMillis()
+
+        insertAccount(Account(id = 1, name = "Checking 1", accountNumber = "9999-1111", balance = deposit1, type = AccountType.CHECKING))
+        insertTransaction(Transaction(
+            accountId = 1,
+            amount = deposit1,
+            timestamp = now,
+            description = "Initial Deposit",
+            type = TransactionType.DEPOSIT,
+            status = TransactionStatus.COMPLETED
+        ))
+
+        insertAccount(Account(id = 2, name = "Checking 2", accountNumber = "9999-2222", balance = deposit2, type = AccountType.CHECKING))
+        insertTransaction(Transaction(
+            accountId = 2,
+            amount = deposit2,
+            timestamp = now,
+            description = "Initial Deposit",
+            type = TransactionType.DEPOSIT,
+            status = TransactionStatus.COMPLETED
+        ))
+        
+        insertRevolvingCredit(RevolvingCreditAccount(id = 1, name = "Credit Card", creditLimit = 10000.0 * scale, interestRate = 15.5, statementDay = 25))
+        
+        insertCreditCard(CreditCard(id = 1, name = "Debit Card", cardNumber = "4242-4242-1111-1111", type = CardType.DEBIT, linkedAccountId = 1))
+        insertCreditCard(CreditCard(id = 2, name = "Credit Card", cardNumber = "4242-4242-2222-2222", type = CardType.CREDIT, linkedCreditAccountId = 1))
+    }
 }
