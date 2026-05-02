@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
         
         val database = BankDatabase.getDatabase(this)
         val bankDao = database.bankDao()
-        val geminiManager = GeminiManager(apiKey = se.banksimulatorn.app.BuildConfig.GEMINI_API_KEY)
+        val geminiManager = GeminiManager(context = this)
 
         setContent {
             BankingSimulatorTheme {
@@ -77,6 +77,9 @@ class MainActivity : ComponentActivity() {
                 val timeMachineViewModel: TimeMachineViewModel = viewModel { TimeMachineViewModel(bankDao) }
 
                 LaunchedEffect(Unit) {
+                    // Trigger download and readiness check for Gemini Nano
+                    geminiManager.triggerDownload()
+
                     if (bankDao.hasGlobalSettings() == 0) {
                         backStack.add(Destination.Onboarding)
                     }
@@ -209,7 +212,13 @@ class MainActivity : ComponentActivity() {
                                 val onboardingViewModel: OnboardingViewModel = viewModel {
                                     OnboardingViewModel(bankDao, geminiManager)
                                 }
-                                OnboardingScreen(viewModel = onboardingViewModel)
+                                OnboardingScreen(
+                                    viewModel = onboardingViewModel,
+                                    onSuccess = {
+                                        backStack.clear()
+                                        backStack.add(Destination.Dashboard)
+                                    }
+                                )
                             }
                             entry<Destination.TransactionSimulator> { key ->
                                 val transactionViewModel: TransactionViewModel = viewModel {

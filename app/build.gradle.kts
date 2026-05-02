@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "se.banksimulatorn.app"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
-    implementation(libs.google.generativeai)
+    implementation(libs.google.aicore)
     implementation(libs.gson)
     implementation(libs.coil.compose)
     implementation(libs.converter.moshi)

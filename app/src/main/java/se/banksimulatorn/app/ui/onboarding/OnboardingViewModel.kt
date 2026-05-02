@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.ai.GeminiManager
@@ -19,8 +20,17 @@ class OnboardingViewModel(
     private val _uiEvent = MutableSharedFlow<OnboardingUiEvent>()
     val uiEvent: SharedFlow<OnboardingUiEvent> = _uiEvent.asSharedFlow()
 
+    val aiStatusMessage: StateFlow<String> = geminiManager.statusMessage
+    val isAiModelReady: StateFlow<Boolean> = geminiManager.isModelReady
+
     fun generateLife(description: String) {
         viewModelScope.launch {
+            val isReady = geminiManager.checkReadiness()
+            if (!isReady) {
+                _uiEvent.emit(OnboardingUiEvent.Error("AI Model is not ready. Status: ${geminiManager.statusMessage.value}"))
+                return@launch
+            }
+
             _uiEvent.emit(OnboardingUiEvent.Loading)
             val json = geminiManager.generateInitialLifeState(description)
             if (json != null) {
@@ -48,11 +58,18 @@ class OnboardingViewModel(
                     _uiEvent.emit(OnboardingUiEvent.Success)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    _uiEvent.emit(OnboardingUiEvent.Error("Failed to parse AI response. Try again."))
+                    _uiEvent.emit(OnboardingUiEvent.Error("Parsing Error: ${e.message}. Please try again."))
                 }
             } else {
-                _uiEvent.emit(OnboardingUiEvent.Error("AI Generation Failed"))
+                _uiEvent.emit(OnboardingUiEvent.Error("AI Generation Failed. Gemini Nano may be unavailable."))
             }
+        }
+    }
+
+    fun skipOnboarding() {
+        viewModelScope.launch {
+            bankDao.seedDefaultData()
+            _uiEvent.emit(OnboardingUiEvent.Success)
         }
     }
 }
