@@ -206,7 +206,7 @@ class MainActivity : ComponentActivity() {
                             }
                             entry<Destination.CreditDetail> { key ->
                                 val creditViewModel: CreditDetailViewModel = viewModel {
-                                    CreditDetailViewModel(key.cardId, bankDao)
+                                    CreditDetailViewModel(key.revolvingAccountId, bankDao)
                                 }
                                 CreditDetailScreen(
                                     viewModel = creditViewModel,

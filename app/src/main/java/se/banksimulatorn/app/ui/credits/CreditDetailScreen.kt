@@ -76,12 +76,26 @@ fun CreditDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(acc.creditLimit).replace("€", ""))
-                            InfoRow(stringResource(R.string.used_credit), "-" + currencyFormatter.format(acc.usedCredit).replace("€", ""), color = Color(0xFFBA1A1A))
-                            InfoRow(stringResource(R.string.interest), currencyFormatter.format(acc.pendingInterest).replace("€", "")) 
-                            InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
-                            
-                            val available = acc.creditLimit - acc.usedCredit - acc.pendingAuthorizations - acc.pendingInterest
+                            if (acc.usedCredit != 0.0) {
+                               InfoRow(
+                                   stringResource(R.string.used_credit),
+                                   "-" + currencyFormatter.format(acc.usedCredit).replace("€", ""),
+                                   color = Color(0xFFBA1A1A)
+                               )
+                            }
+                            if (acc.pendingInterest != 0.0) {
+                                InfoRow(
+                                    stringResource(R.string.interest),
+                                    currencyFormatter.format(-acc.pendingInterest).replace("€", "")
+                                )
+                            }
+                            if (acc.pendingAuthorizations != 0.0) {
+                                InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
+                            }
+                            val available =
+                                acc.creditLimit - acc.usedCredit - acc.pendingAuthorizations - acc.pendingInterest
                             InfoRow(stringResource(R.string.available_amount), currencyFormatter.format(available).replace("€", ""), fontWeight = FontWeight.Bold)
+
                         }
                     }
                 }

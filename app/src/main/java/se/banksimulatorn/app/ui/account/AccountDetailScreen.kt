@@ -152,15 +152,25 @@ fun AccountSummaryCard(account: Account) {
             )
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyMedium)
                 Text(currencyFormatter.format(account.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge)
             }
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.blocked_amount), style = MaterialTheme.typography.bodyLarge)
-                Text("-" + currencyFormatter.format(account.blockedAmount).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+            if (account.blockedAmount != 0.0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        stringResource(R.string.blocked_amount),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "-" + currencyFormatter.format(account.blockedAmount).replace("€", ""),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFFBA1A1A)
+                    )
+                }
             }
-            
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.available_amount), style = MaterialTheme.typography.bodyLarge)
                 val available = account.balance - account.blockedAmount

@@ -15,7 +15,7 @@ import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Transaction
 
 class CreditDetailViewModel(
-    private val cardId: Int,
+    private val revolvingAccountId: Int,
     private val bankDao: BankDao
 ) : ViewModel() {
 
@@ -43,10 +43,12 @@ class CreditDetailViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            val card = bankDao.getCreditCardById(cardId)
-            _creditCard.value = card
-            card?.linkedCreditAccountId?.let { id ->
-                _revolvingAccount.value = bankDao.getRevolvingCreditById(id)
+            val account = bankDao.getRevolvingCreditById(revolvingAccountId)
+            _revolvingAccount.value = account
+            
+            // Find a card linked to this revolving account
+            bankDao.getAllCreditCards().collect { cards ->
+                _creditCard.value = cards.find { it.linkedCreditAccountId == revolvingAccountId }
             }
         }
     }

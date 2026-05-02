@@ -100,48 +100,6 @@ fun DashboardScreen(
                     Text(stringResource(R.string.new_purchase))
                 }
             }
-
-            val blockedTransactions = allTransactions.filter { it.status == TransactionStatus.BLOCKED || it.status == TransactionStatus.PENDING }
-            if (blockedTransactions.isNotEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.blocked),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                items(blockedTransactions) { transaction ->
-                    TransactionItemDesign(
-                        merchant = transaction.merchant ?: transaction.description,
-                        detail = if (transaction.status == TransactionStatus.BLOCKED) stringResource(R.string.reserved) + (transaction.cardNumber?.let { " | $it" } ?: "") else transaction.description,
-                        amount = transaction.amount,
-                        isBlocked = true,
-                        onClick = { onTransactionClick(transaction.id) }
-                    )
-                }
-            }
-
-            val completedTransactions = allTransactions.filter { it.status == TransactionStatus.COMPLETED }
-            if (completedTransactions.isNotEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.latest_transactions),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                items(completedTransactions) { transaction ->
-                    val dateFormatter = SimpleDateFormat("MMMM d'th', yyyy", Locale.US)
-                    TransactionItemDesign(
-                        merchant = transaction.merchant ?: transaction.description,
-                        detail = if (transaction.description == "Credit card purchase") stringResource(R.string.credit_card_purchase) else transaction.description,
-                        date = dateFormatter.format(Date(transaction.timestamp)),
-                        amount = transaction.amount,
-                        onClick = { onTransactionClick(transaction.id) }
-                    )
-                }
-            }
-
             item {
                 Text(
                     stringResource(R.string.loans),
@@ -215,11 +173,11 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                                 "Savings" -> stringResource(R.string.savings)
                                 else -> account.name
                             },
-                            style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
+                            style = MaterialTheme.typography.bodyMedium, color = Color(0xFF2E4053)
                         )
                         Text(
                             currencyFormatter.format(account.balance - account.blockedAmount).replace("€", ""),
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = if (account.balance - account.blockedAmount > 0) Color(0xFF006C4C) else Color(0xFFBA1A1A)
                         )
                     }

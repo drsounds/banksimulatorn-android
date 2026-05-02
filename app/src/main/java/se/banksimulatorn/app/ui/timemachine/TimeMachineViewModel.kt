@@ -109,7 +109,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                             Transaction(
                                 amount = -(interestToCapitalize + fee),
                                 timestamp = nextTime,
-                                description = "Loan Invoice (Interest: $interestToCapitalize, Fee: $fee)",
+                                description = "Loan Invoice",
                                 type = TransactionType.INTEREST,
                                 status = TransactionStatus.COMPLETED
                             )
@@ -206,18 +206,26 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
     fun moveBackwardOneDay() {
         viewModelScope.launch {
             val prevTime = virtualCurrentTime.value - 86400000
+            
+            // 1. Revert Interest Transactions
             val futureInterest = bankDao.getFutureInterestTransactions(prevTime)
             futureInterest.forEach { t ->
                 if (t.accountId != null) bankDao.updateAccountBalance(t.accountId, -t.amount)
-                else if (t.revolvingCreditAccountId != null) bankDao.updateRevolvingCreditUsed(t.revolvingCreditAccountId, -Math.abs(t.amount))
+                else if (t.revolvingCreditAccountId != null) {
+                    // Logic needs to be careful here if it was interest capitalized to usedCredit
+                    bankDao.updateRevolvingCreditUsed(t.revolvingCreditAccountId, -Math.abs(t.amount))
+                }
                 bankDao.softDeleteTransaction(t.id, System.currentTimeMillis())
             }
+
+            // 2. Revert Pending Interest accumulation (approximate)
             val accounts = bankDao.getAllAccountsSync()
             accounts.forEach { account ->
                 val rate = if (account.balance >= 0) account.positiveInterestRate else account.overdraftInterestRate
                 val dailyInterest = account.balance * (rate / 100.0 / 365.0)
                 bankDao.updateAccount(account.copy(pendingInterest = Math.max(0.0, account.pendingInterest - dailyInterest)))
             }
+
             val credits = bankDao.getAllRevolvingCreditsSync()
             credits.forEach { credit ->
                 var dailyInterest = 0.0
@@ -226,12 +234,24 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                 }
                 bankDao.updateRevolvingCredit(credit.copy(pendingInterest = Math.max(0.0, credit.pendingInterest - dailyInterest)))
             }
+
+            // 3. Revert Completed to Blocked (Rollback Settlement)
             val futureCharged = bankDao.getFutureChargedTransactions(prevTime)
             futureCharged.forEach { t ->
                 val revolvingId = t.revolvingCreditAccountId ?: return@forEach
+                val absAmount = Math.abs(t.amount)
+                
+                // Set status back to BLOCKED
                 bankDao.updateTransaction(t.copy(status = TransactionStatus.BLOCKED))
-                bankDao.updateRevolvingCreditPending(revolvingId, Math.abs(t.amount))
+                
+                // Rollback revolving credit: Subtract from used, Add back to pending
+                val revolving = bankDao.getRevolvingCreditById(revolvingId) ?: return@forEach
+                bankDao.updateRevolvingCredit(revolving.copy(
+                    usedCredit = revolving.usedCredit - absAmount,
+                    pendingAuthorizations = revolving.pendingAuthorizations + absAmount
+                ))
             }
+
             bankDao.updateTimeSettings(TimeSettings(virtualCurrentTime = prevTime))
         }
     }

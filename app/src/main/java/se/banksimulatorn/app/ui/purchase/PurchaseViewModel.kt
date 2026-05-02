@@ -51,17 +51,17 @@ class PurchaseViewModel(
             }
 
             try {
+                // Separation: Only increment pendingAuthorizations at initial authorization
                 val updatedAccount = account.copy(
-                    usedCredit = account.usedCredit + amount,
                     pendingAuthorizations = account.pendingAuthorizations + amount
                 )
 
-                val effectiveChargedAt = chargedAt ?: authorizedAt
+                val effectiveChargedAt = chargedAt ?: (authorizedAt + 86400000) // Default charge 1 day later if not set
 
                 val transaction = Transaction(
                     revolvingCreditAccountId = account.id,
                     amount = -amount,
-                    timestamp = effectiveChargedAt,
+                    timestamp = authorizedAt, // Authorized date
                     description = transactionName,
                     merchant = merchant,
                     status = TransactionStatus.BLOCKED,

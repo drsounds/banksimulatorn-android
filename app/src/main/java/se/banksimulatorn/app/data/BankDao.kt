@@ -176,18 +176,26 @@ interface BankDao {
         val transaction = getTransactionById(transactionId) ?: return
         val revolving = getRevolvingCreditById(revolvingId) ?: return
         
-        updateTransaction(transaction.copy(status = TransactionStatus.COMPLETED, chargedAt = timestamp, timestamp = timestamp))
-        updateRevolvingCredit(revolving.copy(pendingAuthorizations = revolving.pendingAuthorizations - Math.abs(amount)))
+        val absAmount = Math.abs(amount)
+        updateTransaction(transaction.copy(
+            status = TransactionStatus.COMPLETED, 
+            chargedAt = timestamp, 
+            timestamp = timestamp
+        ))
+        updateRevolvingCredit(revolving.copy(
+            pendingAuthorizations = revolving.pendingAuthorizations - absAmount,
+            usedCredit = revolving.usedCredit + absAmount
+        ))
     }
     
     @RoomTransaction
     suspend fun releaseBlockedTransaction(transactionId: Int, revolvingId: Int, amount: Double) {
         val revolving = getRevolvingCreditById(revolvingId) ?: return
         
+        val absAmount = Math.abs(amount)
         softDeleteTransaction(transactionId, System.currentTimeMillis())
         updateRevolvingCredit(revolving.copy(
-            usedCredit = revolving.usedCredit - Math.abs(amount),
-            pendingAuthorizations = revolving.pendingAuthorizations - Math.abs(amount)
+            pendingAuthorizations = revolving.pendingAuthorizations - absAmount
         ))
     }
 
