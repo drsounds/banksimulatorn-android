@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.*
 import java.util.Calendar
@@ -56,9 +57,10 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                 }
             }
 
-            // 2. Revolving Credit Invoicing
+            // 2. Revolving Credit Invoicing & Statements
             val credits = bankDao.getAllRevolvingCreditsSync()
             credits.forEach { credit ->
+                // Daily Interest calculation
                 var dailyInterest = 0.0
                 if (credit.interestRate > 0) {
                     if (credit.isBnplMode) {
@@ -73,24 +75,49 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                         }
                     }
                 }
-                val updatedCredit = credit.copy(pendingInterest = credit.pendingInterest + dailyInterest)
-                if (dayOfMonth == credit.invoiceCycleDay) {
-                    val totalToBill = updatedCredit.pendingInterest
-                    if (totalToBill >= 0.01) {
-                        bankDao.performRevolvingCreditTransaction(
-                            Transaction(
-                                revolvingCreditAccountId = credit.id,
-                                amount = -totalToBill,
-                                timestamp = nextTime,
-                                description = "Monthly Interest",
-                                type = TransactionType.INTEREST,
-                                status = TransactionStatus.COMPLETED
-                            ),
-                            updatedCredit.copy(usedCredit = updatedCredit.usedCredit + totalToBill, pendingInterest = 0.0)
+                var updatedCredit = credit.copy(pendingInterest = credit.pendingInterest + dailyInterest)
+
+                // Statement Generation
+                if (dayOfMonth == credit.statementDay) {
+                    val totalDebt = updatedCredit.usedCredit + updatedCredit.pendingInterest
+                    if (totalDebt >= 0.01) {
+                        val minPayment = Math.max(credit.minPaymentAmount, totalDebt * credit.minPaymentPercent / 100.0)
+                        bankDao.insertInvoice(
+                            Invoice(
+                                parentId = credit.id,
+                                parentType = "CREDIT",
+                                amount = totalDebt,
+                                minimumAmount = minPayment,
+                                issuedDate = nextTime,
+                                dueDate = nextTime + (credit.dueDays.toLong() * 86400000L),
+                                status = InvoiceStatus.PENDING,
+                                overdueInterestRate = credit.lateInterestRate,
+                                reminderFee = credit.lateFee
+                            )
                         )
-                    } else {
-                        bankDao.updateRevolvingCredit(updatedCredit.copy(pendingInterest = 0.0))
+                        // Clear pending interest as it is now invoiced (capitalized in the invoice sense)
+                        updatedCredit = updatedCredit.copy(pendingInterest = 0.0)
                     }
+                }
+
+                // Periodic Invoicing of interest (legacy logic if dayOfMonth matches invoiceCycleDay)
+                if (dayOfMonth == credit.invoiceCycleDay && dayOfMonth != credit.statementDay) {
+                     val totalToBill = updatedCredit.pendingInterest
+                     if (totalToBill >= 0.01) {
+                         bankDao.performRevolvingCreditTransaction(
+                             Transaction(
+                                 revolvingCreditAccountId = credit.id,
+                                 amount = -totalToBill,
+                                 timestamp = nextTime,
+                                 description = "Monthly Interest",
+                                 type = TransactionType.INTEREST,
+                                 status = TransactionStatus.COMPLETED
+                             ),
+                             updatedCredit.copy(usedCredit = updatedCredit.usedCredit + totalToBill, pendingInterest = 0.0)
+                         )
+                     } else {
+                         bankDao.updateRevolvingCredit(updatedCredit.copy(pendingInterest = 0.0))
+                     }
                 } else {
                     bankDao.updateRevolvingCredit(updatedCredit)
                 }
@@ -121,24 +148,65 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                 }
             }
 
-            // 4. E-Invoicing Engine (Overdue reminders)
-            val pendingInvoices = bankDao.getPendingInvoicesSync()
-            pendingInvoices.forEach { invoice ->
-                if (nextTime > invoice.dueDate) {
-                    bankDao.updateInvoice(invoice.copy(status = InvoiceStatus.OVERDUE))
+            // 4. E-Invoicing Engine (Overdue & Collection)
+            val openInvoices = bankDao.getPendingInvoicesSync() // This was mapped to status = 'PENDING'
+            // We need to fetch PENDING, REMINDER, and OVERDUE for daily processing
+            val allActiveInvoices = bankDao.getAllInvoices().first().filter { it.status != InvoiceStatus.PAID && it.deletedAt == null }
+            
+            allActiveInvoices.forEach { invoice ->
+                var updatedInvoice = invoice
+                
+                // Overdue Interest calculation (Daily)
+                if (invoice.status == InvoiceStatus.OVERDUE || invoice.status == InvoiceStatus.COLLECTION) {
+                    val dailyLateInterest = updatedInvoice.amount * (invoice.overdueInterestRate / 100.0 / 365.0)
+                    updatedInvoice = updatedInvoice.copy(amount = updatedInvoice.amount + dailyLateInterest)
+                }
+
+                // Check for state transitions
+                if (nextTime > invoice.dueDate && (invoice.status == InvoiceStatus.PENDING || invoice.status == InvoiceStatus.REMINDER)) {
+                    // Transition to OVERDUE
+                    updatedInvoice = updatedInvoice.copy(
+                        status = InvoiceStatus.OVERDUE,
+                        amount = updatedInvoice.amount + invoice.reminderFee
+                    )
+                    
+                    // Generate a REMINDER record if requested
                     bankDao.insertInvoice(
                         Invoice(
                             parentId = invoice.parentId,
                             parentType = invoice.parentType,
-                            amount = invoice.amount + invoice.reminderFee,
+                            amount = updatedInvoice.amount,
+                            minimumAmount = invoice.minimumAmount,
                             issuedDate = nextTime,
-                            dueDate = nextTime + 86400000 * 7,
+                            dueDate = nextTime + (7L * 86400000L), // 7 days grace for reminder
                             status = InvoiceStatus.REMINDER,
                             isReminder = true,
                             reminderFee = invoice.reminderFee,
                             overdueInterestRate = invoice.overdueInterestRate
                         )
                     )
+                }
+                
+                // Collection transition: if virtual time reaches subsequent month after becoming overdue
+                if (invoice.status == InvoiceStatus.OVERDUE) {
+                    val dueCal = Calendar.getInstance().apply { timeInMillis = invoice.dueDate }
+                    if (calendar.get(Calendar.MONTH) != dueCal.get(Calendar.MONTH) || calendar.get(Calendar.YEAR) != dueCal.get(Calendar.YEAR)) {
+                        // It is a different month now. 
+                        // Fetch the account to get the collectionFee
+                        if (invoice.parentType == "CREDIT") {
+                            val credit = bankDao.getRevolvingCreditById(invoice.parentId)
+                            if (credit != null) {
+                                updatedInvoice = updatedInvoice.copy(
+                                    status = InvoiceStatus.COLLECTION,
+                                    amount = updatedInvoice.amount + credit.collectionFee
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (updatedInvoice != invoice) {
+                    bankDao.updateInvoice(updatedInvoice)
                 }
             }
 
@@ -166,7 +234,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                                 parentType = "RECURRING",
                                 amount = task.amount,
                                 issuedDate = nextTime,
-                                dueDate = nextTime + 86400000 * 14,
+                                dueDate = nextTime + (14L * 86400000L),
                                 status = InvoiceStatus.PENDING
                             )
                         )
@@ -212,7 +280,6 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
             futureInterest.forEach { t ->
                 if (t.accountId != null) bankDao.updateAccountBalance(t.accountId, -t.amount)
                 else if (t.revolvingCreditAccountId != null) {
-                    // Logic needs to be careful here if it was interest capitalized to usedCredit
                     bankDao.updateRevolvingCreditUsed(t.revolvingCreditAccountId, -Math.abs(t.amount))
                 }
                 bankDao.softDeleteTransaction(t.id, System.currentTimeMillis())
@@ -240,11 +307,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
             futureCharged.forEach { t ->
                 val revolvingId = t.revolvingCreditAccountId ?: return@forEach
                 val absAmount = Math.abs(t.amount)
-                
-                // Set status back to BLOCKED
                 bankDao.updateTransaction(t.copy(status = TransactionStatus.BLOCKED))
-                
-                // Rollback revolving credit: Subtract from used, Add back to pending
                 val revolving = bankDao.getRevolvingCreditById(revolvingId) ?: return@forEach
                 bankDao.updateRevolvingCredit(revolving.copy(
                     usedCredit = revolving.usedCredit - absAmount,

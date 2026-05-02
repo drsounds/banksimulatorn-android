@@ -36,6 +36,9 @@ sealed interface Destination : NavKey {
 
     @Serializable
     data object History : Destination
+
+    @Serializable
+    data class InvoicePayment(val invoiceId: Int) : Destination
 }
 
 enum class AccountSettingsType {

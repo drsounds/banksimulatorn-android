@@ -32,12 +32,14 @@ fun CreditDetailScreen(
     onSimulatePurchase: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
     onSettingsClick: (Int) -> Unit,
+    onInvoiceClick: (Int) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val card by viewModel.creditCard.collectAsState()
     val revolvingAccount by viewModel.revolvingAccount.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
+    val invoices by viewModel.invoices.collectAsState()
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
     Column(modifier = modifier) {
@@ -116,6 +118,15 @@ fun CreditDetailScreen(
                     }
                 }
 
+                if (invoices.isNotEmpty()) {
+                    item {
+                        Text(stringResource(R.string.invoices), style = MaterialTheme.typography.labelLarge)
+                    }
+                    items(invoices) { invoice ->
+                        InvoiceDetailItem(invoice = invoice, onPay = { onInvoiceClick(invoice.id) })
+                    }
+                }
+
                 val blockedTransactions = transactions.filter { it.status == TransactionStatus.BLOCKED || it.status == TransactionStatus.PENDING }
                 if (blockedTransactions.isNotEmpty()) {
                     item {
@@ -134,6 +145,53 @@ fun CreditDetailScreen(
                     items(completedTransactions) { transaction ->
                         CreditTransactionItem(transaction, onClick = { onTransactionClick(transaction.id) })
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InvoiceDetailItem(
+    invoice: se.banksimulatorn.app.data.Invoice,
+    onPay: () -> Unit
+) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = when (invoice.status) {
+                se.banksimulatorn.app.data.InvoiceStatus.PAID -> Color(0xFFE0E4E1).copy(alpha = 0.5f)
+                se.banksimulatorn.app.data.InvoiceStatus.OVERDUE, se.banksimulatorn.app.data.InvoiceStatus.COLLECTION -> MaterialTheme.colorScheme.errorContainer
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            }
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.due_date, dateFormatter.format(Date(invoice.dueDate))),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = currencyFormatter.format(invoice.amount).replace("€", ""),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (invoice.status == se.banksimulatorn.app.data.InvoiceStatus.PAID) Color.Gray else Color.Unspecified
+                )
+                Text(
+                    text = invoice.status.name,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            if (invoice.status != se.banksimulatorn.app.data.InvoiceStatus.PAID) {
+                Button(onClick = onPay) {
+                    Text(stringResource(R.string.pay))
                 }
             }
         }

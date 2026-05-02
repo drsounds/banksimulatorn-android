@@ -13,6 +13,7 @@ import se.banksimulatorn.app.data.BankDao
 import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Transaction
+import se.banksimulatorn.app.data.Invoice
 
 class CreditDetailViewModel(
     private val revolvingAccountId: Int,
@@ -24,6 +25,18 @@ class CreditDetailViewModel(
 
     private val _revolvingAccount = MutableStateFlow<RevolvingCreditAccount?>(null)
     val revolvingAccount: StateFlow<RevolvingCreditAccount?> = _revolvingAccount.asStateFlow()
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val invoices: StateFlow<List<Invoice>> = _revolvingAccount
+        .flatMapLatest { account ->
+            if (account == null) kotlinx.coroutines.flow.flowOf(emptyList())
+            else bankDao.getInvoicesForAccount(account.id)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val transactions: StateFlow<List<Transaction>> = _revolvingAccount

@@ -25,6 +25,8 @@ import se.banksimulatorn.app.data.Loan
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import se.banksimulatorn.app.data.RevolvingCreditAccount
+import se.banksimulatorn.app.data.Invoice
+import se.banksimulatorn.app.data.InvoiceStatus
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -41,12 +43,14 @@ fun DashboardScreen(
     onLoanClick: (Int) -> Unit,
     onCreditClick: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
+    onInvoiceClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val accounts by viewModel.accounts.collectAsState()
     val loans by viewModel.loans.collectAsState()
     val revolvingCredits by viewModel.revolvingCredits.collectAsState()
     val allTransactions by viewModel.allTransactions.collectAsState()
+    val openInvoices by viewModel.openInvoices.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Column(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)) {
@@ -74,6 +78,22 @@ fun DashboardScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (openInvoices.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.open_invoices),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(openInvoices) { invoice ->
+                    InvoiceItemDesign(
+                        invoice = invoice,
+                        onClick = { onInvoiceClick(invoice.id) }
+                    )
+                }
+            }
+
             item {
                 Text(
                     stringResource(R.string.accounts),
@@ -281,6 +301,54 @@ fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
                     currencyFormatter.format(card.creditLimit).replace("€", ""),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun InvoiceItemDesign(
+    invoice: Invoice,
+    onClick: () -> Unit
+) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val dateFormatter = SimpleDateFormat("MMM dd", Locale.US)
+    
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = when (invoice.status) {
+                InvoiceStatus.OVERDUE, InvoiceStatus.COLLECTION -> MaterialTheme.colorScheme.errorContainer
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            }
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = if (invoice.parentType == "CREDIT") stringResource(R.string.credits) else invoice.parentType,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.due_date, dateFormatter.format(Date(invoice.dueDate))),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = currencyFormatter.format(invoice.amount).replace("€", ""),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = if (invoice.status == InvoiceStatus.OVERDUE || invoice.status == InvoiceStatus.COLLECTION) MaterialTheme.colorScheme.error else Color.Unspecified
+                )
+                Text(
+                    text = invoice.status.name,
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }

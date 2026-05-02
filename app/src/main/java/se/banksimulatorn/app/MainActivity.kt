@@ -46,6 +46,7 @@ import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailScree
 import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewModel
 import se.banksimulatorn.app.ui.settings.*
 import se.banksimulatorn.app.ui.create.*
+import se.banksimulatorn.app.ui.invoice.*
 import se.banksimulatorn.app.ui.timemachine.TimeMachineBar
 import se.banksimulatorn.app.ui.timemachine.TimeMachineViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
@@ -156,6 +157,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onTransactionClick = { id ->
                                         backStack.add(Destination.BlockedTransactionDetail(id))
+                                    },
+                                    onInvoiceClick = { id ->
+                                        backStack.add(Destination.InvoicePayment(id))
                                     }
                                 )
                             }
@@ -219,6 +223,9 @@ class MainActivity : ComponentActivity() {
                                     onSettingsClick = { id ->
                                         backStack.add(Destination.AccountSettings(id, AccountSettingsType.CREDIT_CARD))
                                     },
+                                    onInvoiceClick = { id ->
+                                        backStack.add(Destination.InvoicePayment(id))
+                                    },
                                     onBack = popSafe
                                 )
                             }
@@ -263,6 +270,15 @@ class MainActivity : ComponentActivity() {
                                 }
                                 CreateAccountScreen(
                                     viewModel = createAccountViewModel,
+                                    onBack = popSafe
+                                )
+                            }
+                            entry<Destination.InvoicePayment> { key ->
+                                val invoiceViewModel: InvoicePaymentViewModel = viewModel {
+                                    InvoicePaymentViewModel(key.invoiceId, bankDao)
+                                }
+                                InvoicePaymentScreen(
+                                    viewModel = invoiceViewModel,
                                     onBack = popSafe
                                 )
                             }

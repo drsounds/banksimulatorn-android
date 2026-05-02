@@ -88,4 +88,18 @@
     <string name="create_account">Luo tili</string>
     <string name="home">Koti</string>
     <string name="settings">Asetukset</string>
+    <string name="open_invoices">Avoimet laskut</string>
+    <string name="invoices">Laskut</string>
+    <string name="pay">Maksa</string>
+    <string name="minimum_amount">Vähimmäissumma</string>
+    <string name="pay_invoice">Maksa lasku</string>
+    <string name="invoice_details">Laskun tiedot</string>
+    <string name="select_payment_account">Valitse maksutili</string>
+    <string name="payment_successful">Maksu suoritettu</string>
+    <string name="overdue">Erääntynyt</string>
+    <string name="collection">Perintä</string>
+    <string name="statement_day">Laskutuspäivä (1&#8211;28)</string>
+    <string name="due_days">Maksuaika (päivää)</string>
+    <string name="late_fee">Viivästysmaksu</string>
+    <string name="collection_fee">Perintämaksu</string>
 </resources>

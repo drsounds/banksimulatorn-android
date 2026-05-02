@@ -88,4 +88,18 @@
     <string name="create_new">Create New</string>
     <string name="home">Home</string>
     <string name="settings">Settings</string>
+    <string name="open_invoices">Open Invoices</string>
+    <string name="invoices">Invoices</string>
+    <string name="pay">Pay</string>
+    <string name="minimum_amount">Minimum payment</string>
+    <string name="pay_invoice">Pay Invoice</string>
+    <string name="invoice_details">Invoice Details</string>
+    <string name="select_payment_account">Select payment account</string>
+    <string name="payment_successful">Payment successful</string>
+    <string name="overdue">Overdue</string>
+    <string name="collection">Collection</string>
+    <string name="statement_day">Statement Day (1-28)</string>
+    <string name="due_days">Due Days</string>
+    <string name="late_fee">Late Fee</string>
+    <string name="collection_fee">Collection Fee</string>
 </resources>

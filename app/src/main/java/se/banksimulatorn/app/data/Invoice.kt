@@ -9,6 +9,7 @@ data class Invoice(
     val parentId: Int, // Link to Account/Credit/Loan/Recurring
     val parentType: String, // "ACCOUNT", "CREDIT", "LOAN", "RECURRING"
     val amount: Double,
+    val minimumAmount: Double = 0.0,
     val dueDate: Long,
     val issuedDate: Long,
     val status: InvoiceStatus = InvoiceStatus.PENDING,
@@ -19,5 +20,5 @@ data class Invoice(
 )
 
 enum class InvoiceStatus {
-    PENDING, PAID, OVERDUE, REMINDER
+    PENDING, PAID, OVERDUE, REMINDER, COLLECTION
 }

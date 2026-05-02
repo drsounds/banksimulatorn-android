@@ -18,7 +18,7 @@ import androidx.room.TypeConverters
         Invoice::class,
         RecurringTask::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

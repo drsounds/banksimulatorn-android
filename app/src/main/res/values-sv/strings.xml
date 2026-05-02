@@ -88,4 +88,18 @@
     <string name="create_new">Skapa ny</string>
     <string name="home">Hem</string>
     <string name="settings">Inställningar</string>
+    <string name="open_invoices">Öppna fakturor</string>
+    <string name="invoices">Fakturor</string>
+    <string name="pay">Betala</string>
+    <string name="minimum_amount">Lägsta belopp</string>
+    <string name="pay_invoice">Betala faktura</string>
+    <string name="invoice_details">Fakturadetaljer</string>
+    <string name="select_payment_account">Välj betalkonto</string>
+    <string name="payment_successful">Betalning genomförd</string>
+    <string name="overdue">Förfallen</string>
+    <string name="collection">Inkasso</string>
+    <string name="statement_day">Brytdag (1&#8211;28)</string>
+    <string name="due_days">Betalningsvillkor (dagar)</string>
+    <string name="late_fee">Förseningsavgift</string>
+    <string name="collection_fee">Inkassoavgift</string>
 </resources>

@@ -88,4 +88,18 @@
     <string name="create_new">Opprett ny</string>
     <string name="home">Hjem</string>
     <string name="settings">Innstillinger</string>
+    <string name="open_invoices">Åpne fakturaer</string>
+    <string name="invoices">Fakturaer</string>
+    <string name="pay">Betal</string>
+    <string name="minimum_amount">Minimumsbeløp</string>
+    <string name="pay_invoice">Betal faktura</string>
+    <string name="invoice_details">Fakturadetaljer</string>
+    <string name="select_payment_account">Velg betalingskonto</string>
+    <string name="payment_successful">Betaling utført</string>
+    <string name="overdue">Forfalt</string>
+    <string name="collection">Inkasso</string>
+    <string name="statement_day">Fakturadag (1&#8211;28)</string>
+    <string name="due_days">Betalingsfrist (dager)</string>
+    <string name="late_fee">Purregebyr</string>
+    <string name="collection_fee">Inkassogebyr</string>
 </resources>

@@ -93,6 +93,12 @@ interface BankDao {
     @Query("SELECT * FROM invoices WHERE deletedAt IS NULL")
     fun getAllInvoices(): Flow<List<Invoice>>
 
+    @Query("SELECT * FROM invoices WHERE status != 'PAID' AND deletedAt IS NULL")
+    fun getOpenInvoices(): Flow<List<Invoice>>
+
+    @Query("SELECT * FROM invoices WHERE parentId = :parentId AND deletedAt IS NULL ORDER BY issuedDate DESC")
+    fun getInvoicesForAccount(parentId: Int): Flow<List<Invoice>>
+
     @Query("SELECT * FROM invoices WHERE id = :id AND deletedAt IS NULL")
     suspend fun getInvoiceById(id: Int): Invoice?
 

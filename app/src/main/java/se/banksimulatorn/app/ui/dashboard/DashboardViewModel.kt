@@ -11,6 +11,7 @@ import se.banksimulatorn.app.data.CreditCard
 import se.banksimulatorn.app.data.Loan
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.RevolvingCreditAccount
+import se.banksimulatorn.app.data.Invoice
 
 class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
 
@@ -36,6 +37,13 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
         )
 
     val allTransactions: StateFlow<List<Transaction>> = bankDao.getAllTransactions()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val openInvoices: StateFlow<List<Invoice>> = bankDao.getOpenInvoices()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
