@@ -41,10 +41,12 @@ loggingInterceptor = "4.10.0"
 okhttp = "4.10.0"
 moshiKotlin = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
+gson = "2.11.0"
 datastorePreferences = "1.1.7"
 material = "1.4.+"
 
 [libraries]
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

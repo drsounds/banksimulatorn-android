@@ -3,6 +3,8 @@ package se.banksimulatorn.app.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.*
@@ -45,19 +47,67 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
         }
     }
 
-    fun resetSystem(context: Context) {
+    fun resetSystem() {
         viewModelScope.launch {
-            // Placeholder: In a real app we'd clear all tables or use destructive migration trigger
-            // For now, let's just delete the database file and suggest restart
-            context.deleteDatabase("bank_database")
+            bankDao.clearAllData()
         }
     }
 
-    fun exportData(context: Context): String {
-        return "{ \"version\": 12, \"status\": \"success\" }"
+    // Improved Export that collects current state
+    fun performExport(onExported: (String) -> Unit) {
+        viewModelScope.launch {
+            val accounts = bankDao.getAllAccountsSync()
+            val transactions = bankDao.getAllTransactions().first()
+            val loans = bankDao.getAllLoansSync()
+            val cards = bankDao.getAllCreditCards().first()
+            val credits = bankDao.getAllRevolvingCreditsSync()
+            val invoices = bankDao.getAllInvoices().first()
+            val recurring = bankDao.getAllRecurringTasksSync()
+            val settings = bankDao.getGlobalSettings().first() ?: GlobalSettings()
+
+            val bundle = BankDataBundle(
+                accounts = accounts,
+                transactions = transactions,
+                loans = loans,
+                creditCards = cards,
+                revolvingCredits = credits,
+                invoices = invoices,
+                recurringTasks = recurring,
+                globalSettings = settings
+            )
+            
+            val json = Gson().toJson(bundle)
+            onExported(json)
+        }
     }
 
-    fun importData(context: Context, json: String) {
-        // Implementation for importing JSON
+    fun performImport(json: String) {
+        viewModelScope.launch {
+            try {
+                val bundle = Gson().fromJson(json, BankDataBundle::class.java)
+                bankDao.clearAllData()
+                bankDao.insertAccounts(bundle.accounts)
+                bankDao.insertTransactions(bundle.transactions)
+                bankDao.insertLoans(bundle.loans)
+                bankDao.insertCreditCards(bundle.creditCards)
+                bankDao.insertRevolvingCredits(bundle.revolvingCredits)
+                bankDao.insertInvoices(bundle.invoices)
+                bankDao.insertRecurringTasks(bundle.recurringTasks)
+                bankDao.updateGlobalSettings(bundle.globalSettings)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
+
+data class BankDataBundle(
+    val accounts: List<Account>,
+    val transactions: List<Transaction>,
+    val loans: List<Loan>,
+    val creditCards: List<CreditCard>,
+    val revolvingCredits: List<RevolvingCreditAccount>,
+    val invoices: List<Invoice>,
+    val recurringTasks: List<RecurringTask>,
+    val globalSettings: GlobalSettings
+)

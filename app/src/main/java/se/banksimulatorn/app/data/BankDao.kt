@@ -197,4 +197,57 @@ interface BankDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateTimeSettings(settings: TimeSettings)
+
+    @RoomTransaction
+    suspend fun clearAllData() {
+        clearAccounts()
+        clearTransactions()
+        clearLoans()
+        clearCreditCards()
+        clearRevolvingCredits()
+        clearInvoices()
+        clearRecurringTasks()
+    }
+
+    @Query("DELETE FROM accounts")
+    suspend fun clearAccounts()
+
+    @Query("DELETE FROM transactions")
+    suspend fun clearTransactions()
+
+    @Query("DELETE FROM loans")
+    suspend fun clearLoans()
+
+    @Query("DELETE FROM credit_cards")
+    suspend fun clearCreditCards()
+
+    @Query("DELETE FROM revolving_credit_accounts")
+    suspend fun clearRevolvingCredits()
+
+    @Query("DELETE FROM invoices")
+    suspend fun clearInvoices()
+
+    @Query("DELETE FROM recurring_tasks")
+    suspend fun clearRecurringTasks()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAccounts(accounts: List<Account>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTransactions(transactions: List<Transaction>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLoans(loans: List<Loan>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCreditCards(cards: List<CreditCard>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRevolvingCredits(credits: List<RevolvingCreditAccount>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInvoices(invoices: List<Invoice>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecurringTasks(tasks: List<RecurringTask>)
 }
