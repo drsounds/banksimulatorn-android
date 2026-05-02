@@ -69,6 +69,36 @@ class CreateAccountViewModel(private val bankDao: BankDao) : ViewModel() {
             _uiEvent.emit(CreateUiEvent.Success)
         }
     }
+
+    fun createAsset(name: String, type: AssetType, value: Double, growth: Double) {
+        viewModelScope.launch {
+            bankDao.insertAsset(Asset(
+                name = name,
+                type = type,
+                initialValue = value,
+                currentValue = value,
+                monthlyGrowthRate = growth,
+                purchaseDate = System.currentTimeMillis()
+            ))
+            _uiEvent.emit(CreateUiEvent.Success)
+        }
+    }
+
+    fun createBudgetItem(name: String, amount: Double, type: BudgetType, frequency: BudgetFrequency, method: PaymentMethod, targetId: Int?, creditId: Int?) {
+        viewModelScope.launch {
+            bankDao.insertBudgetItem(BudgetItem(
+                name = name,
+                amount = amount,
+                type = type,
+                frequency = frequency,
+                paymentMethod = method,
+                targetAccountId = targetId,
+                linkedCreditAccountId = creditId,
+                startDate = System.currentTimeMillis()
+            ))
+            _uiEvent.emit(CreateUiEvent.Success)
+        }
+    }
 }
 
 sealed class CreateUiEvent {

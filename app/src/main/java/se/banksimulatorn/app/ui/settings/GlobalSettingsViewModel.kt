@@ -25,7 +25,16 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
 
     fun updateCurrency(currency: String) {
         viewModelScope.launch {
-            bankDao.updateGlobalSettings(GlobalSettings(currency = currency))
+            val current = globalSettings.value ?: GlobalSettings()
+            bankDao.updateGlobalSettings(current.copy(currency = currency))
+        }
+    }
+
+    fun updateCountry(country: String) {
+        viewModelScope.launch {
+            val current = globalSettings.value ?: GlobalSettings()
+            val newSettings = current.copy(country = country)
+            bankDao.updateGlobalSettings(newSettings.copy(currency = newSettings.getCurrencyForCountry(country)))
         }
     }
 
@@ -54,7 +63,6 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
         }
     }
 
-    // Improved Export that collects current state
     fun performExport(onExported: (String) -> Unit) {
         viewModelScope.launch {
             val accounts = bankDao.getAllAccountsSync()
@@ -64,6 +72,8 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
             val credits = bankDao.getAllRevolvingCreditsSync()
             val invoices = bankDao.getAllInvoices().first()
             val recurring = bankDao.getAllRecurringTasksSync()
+            val assets = bankDao.getAllAssets().first()
+            val budget = bankDao.getAllBudgetItemsSync()
             val settings = bankDao.getGlobalSettings().first() ?: GlobalSettings()
 
             val bundle = BankDataBundle(
@@ -74,6 +84,8 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
                 revolvingCredits = credits,
                 invoices = invoices,
                 recurringTasks = recurring,
+                assets = assets,
+                budgetItems = budget,
                 globalSettings = settings
             )
             
@@ -94,6 +106,14 @@ class GlobalSettingsViewModel(private val bankDao: BankDao) : ViewModel() {
                 bankDao.insertRevolvingCredits(bundle.revolvingCredits)
                 bankDao.insertInvoices(bundle.invoices)
                 bankDao.insertRecurringTasks(bundle.recurringTasks)
+                
+                bundle.assets?.let { assets ->
+                    assets.forEach { bankDao.insertAsset(it) }
+                }
+                bundle.budgetItems?.let { items ->
+                    items.forEach { bankDao.insertBudgetItem(it) }
+                }
+                
                 bankDao.updateGlobalSettings(bundle.globalSettings)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -110,5 +130,7 @@ data class BankDataBundle(
     val revolvingCredits: List<RevolvingCreditAccount>,
     val invoices: List<Invoice>,
     val recurringTasks: List<RecurringTask>,
+    val assets: List<Asset>? = emptyList(),
+    val budgetItems: List<BudgetItem>? = emptyList(),
     val globalSettings: GlobalSettings
 )

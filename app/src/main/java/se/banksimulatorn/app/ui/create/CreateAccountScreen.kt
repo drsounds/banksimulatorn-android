@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,91 +54,42 @@ fun CreateAccountScreen(
                 SegmentedButton(
                     selected = selectedType == "ACCOUNT",
                     onClick = { selectedType = "ACCOUNT" },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 5)
                 ) { Text(stringResource(R.string.accounts)) }
                 SegmentedButton(
                     selected = selectedType == "CREDIT",
                     onClick = { selectedType = "CREDIT" },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 5)
                 ) { Text(stringResource(R.string.credits)) }
                 SegmentedButton(
                     selected = selectedType == "LOAN",
                     onClick = { selectedType = "LOAN" },
-                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 5)
                 ) { Text(stringResource(R.string.loans)) }
                 SegmentedButton(
-                    selected = selectedType == "CARD",
-                    onClick = { selectedType = "CARD" },
-                    shape = SegmentedButtonDefaults.itemShape(index = 3, count = 4)
-                ) { Text("Card") }
+                    selected = selectedType == "ASSET",
+                    onClick = { selectedType = "ASSET" },
+                    shape = SegmentedButtonDefaults.itemShape(index = 3, count = 5)
+                ) { Text("Asset") }
+                SegmentedButton(
+                    selected = selectedType == "BUDGET",
+                    onClick = { selectedType = "BUDGET" },
+                    shape = SegmentedButtonDefaults.itemShape(index = 4, count = 5)
+                ) { Text("Budget") }
             }
 
             when (selectedType) {
                 "ACCOUNT" -> BankAccountForm(onSave = viewModel::createBankAccount)
                 "CREDIT" -> RevolvingCreditForm(onSave = viewModel::createRevolvingCredit)
                 "LOAN" -> LoanForm(onSave = viewModel::createLoan)
-                "CARD" -> {
+                "ASSET" -> AssetForm(onSave = viewModel::createAsset)
+                "BUDGET" -> {
                     val accounts by viewModel.allAccounts.collectAsState()
                     val credits by viewModel.allRevolvingCredits.collectAsState()
-                    CardForm(
-                        accounts = accounts,
-                        credits = credits,
-                        onSave = viewModel::createCard
-                    )
+                    BudgetForm(accounts = accounts, credits = credits, onSave = viewModel::createBudgetItem)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun CardForm(
-    accounts: List<Account>,
-    credits: List<RevolvingCreditAccount>,
-    onSave: (String, String, CardType, Int?, Int?) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var number by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf(CardType.DEBIT) }
-    var linkedId by remember { mutableStateOf<Int?>(null) }
-
-    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Card Name") }, modifier = Modifier.fillMaxWidth())
-    OutlinedTextField(value = number, onValueChange = { number = it }, label = { Text("Card Number") }, modifier = Modifier.fillMaxWidth())
-
-    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        RadioButton(selected = type == CardType.DEBIT, onClick = { type = CardType.DEBIT; linkedId = null })
-        Text("Debit")
-        Spacer(modifier = Modifier.width(16.dp))
-        RadioButton(selected = type == CardType.CREDIT, onClick = { type = CardType.CREDIT; linkedId = null })
-        Text("Credit")
-    }
-
-    Text("Link to:", style = MaterialTheme.typography.titleMedium)
-    if (type == CardType.DEBIT) {
-        accounts.forEach { acc ->
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.clickable { linkedId = acc.id }) {
-                RadioButton(selected = linkedId == acc.id, onClick = { linkedId = acc.id })
-                Text(acc.name)
-            }
-        }
-    } else {
-        credits.forEach { acc ->
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, modifier = Modifier.clickable { linkedId = acc.id }) {
-                RadioButton(selected = linkedId == acc.id, onClick = { linkedId = acc.id })
-                Text(acc.name)
-            }
-        }
-    }
-
-    Button(
-        onClick = { 
-            if (type == CardType.DEBIT) onSave(name, number, type, linkedId, null)
-            else onSave(name, number, type, null, linkedId)
-        },
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
-        Text("Create Card")
     }
 }
 
@@ -152,7 +104,7 @@ fun BankAccountForm(onSave: (String, String, Double, AccountType) -> Unit) {
     OutlinedTextField(value = number, onValueChange = { number = it }, label = { Text("Account Number") }, modifier = Modifier.fillMaxWidth())
     OutlinedTextField(value = balance, onValueChange = { balance = it }, label = { Text("Initial Balance") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
     
-    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         RadioButton(selected = type == AccountType.CHECKING, onClick = { type = AccountType.CHECKING })
         Text("Checking")
         Spacer(modifier = Modifier.width(16.dp))
@@ -160,11 +112,7 @@ fun BankAccountForm(onSave: (String, String, Double, AccountType) -> Unit) {
         Text("Savings")
     }
 
-    Button(
-        onClick = { onSave(name, number, balance.toDoubleOrNull() ?: 0.0, type) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
+    Button(onClick = { onSave(name, number, balance.toDoubleOrNull() ?: 0.0, type) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
         Text("Create Account")
     }
 }
@@ -181,11 +129,7 @@ fun RevolvingCreditForm(onSave: (String, Double, Double, Int) -> Unit) {
     OutlinedTextField(value = rate, onValueChange = { rate = it }, label = { Text("Interest Rate (%)") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
     OutlinedTextField(value = cycleDay, onValueChange = { cycleDay = it }, label = { Text("Invoice Cycle Day") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
 
-    Button(
-        onClick = { onSave(name, limit.toDoubleOrNull() ?: 0.0, rate.toDoubleOrNull() ?: 0.0, cycleDay.toIntOrNull() ?: 1) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
+    Button(onClick = { onSave(name, limit.toDoubleOrNull() ?: 0.0, rate.toDoubleOrNull() ?: 0.0, cycleDay.toIntOrNull() ?: 1) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
         Text("Create Credit Line")
     }
 }
@@ -202,11 +146,85 @@ fun LoanForm(onSave: (String, Double, Double, Int) -> Unit) {
     OutlinedTextField(value = fee, onValueChange = { fee = it }, label = { Text("Monthly Fee") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
     OutlinedTextField(value = cycleDay, onValueChange = { cycleDay = it }, label = { Text("Invoice Cycle Day") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
 
-    Button(
-        onClick = { onSave(name, balance.toDoubleOrNull() ?: 0.0, fee.toDoubleOrNull() ?: 0.0, cycleDay.toIntOrNull() ?: 1) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
+    Button(onClick = { onSave(name, balance.toDoubleOrNull() ?: 0.0, fee.toDoubleOrNull() ?: 0.0, cycleDay.toIntOrNull() ?: 1) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
         Text("Create Loan")
+    }
+}
+
+@Composable
+fun AssetForm(onSave: (String, AssetType, Double, Double) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(AssetType.VILLA) }
+    var value by remember { mutableStateOf("") }
+    var growth by remember { mutableStateOf("0") }
+
+    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Asset Name") }, modifier = Modifier.fillMaxWidth())
+    
+    Text("Type", style = MaterialTheme.typography.labelLarge)
+    Row {
+        AssetType.values().filter { it != AssetType.OTHER }.forEach { t ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { type = t }.padding(8.dp)) {
+                RadioButton(selected = type == t, onClick = { type = t })
+                Text(t.name)
+            }
+        }
+    }
+
+    OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text("Initial Value") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+    OutlinedTextField(value = growth, onValueChange = { growth = it }, label = { Text("Monthly Growth (%)") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+
+    Button(onClick = { onSave(name, type, value.toDoubleOrNull() ?: 0.0, growth.toDoubleOrNull() ?: 0.0) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
+        Text("Add Asset")
+    }
+}
+
+@Composable
+fun BudgetForm(
+    accounts: List<Account>,
+    credits: List<RevolvingCreditAccount>,
+    onSave: (String, Double, BudgetType, BudgetFrequency, PaymentMethod, Int?, Int?) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(BudgetType.EXPENSE) }
+    var freq by remember { mutableStateOf(BudgetFrequency.MONTHLY) }
+    var method by remember { mutableStateOf(PaymentMethod.DIRECT_DEBIT) }
+    var targetId by remember { mutableStateOf<Int?>(null) }
+
+    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Item Name") }, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+    
+    Row {
+        RadioButton(selected = type == BudgetType.INCOME, onClick = { type = BudgetType.INCOME })
+        Text("Income")
+        Spacer(modifier = Modifier.width(16.dp))
+        RadioButton(selected = type == BudgetType.EXPENSE, onClick = { type = BudgetType.EXPENSE })
+        Text("Expense")
+    }
+
+    if (type == BudgetType.INCOME) {
+        Text("Target Account")
+        accounts.forEach { acc ->
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { targetId = acc.id }) {
+                RadioButton(selected = targetId == acc.id, onClick = { targetId = acc.id })
+                Text(acc.name)
+            }
+        }
+    } else {
+        Text("Payment Method")
+        Row {
+            PaymentMethod.values().forEach { m ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { method = m }.padding(4.dp)) {
+                    RadioButton(selected = method == m, onClick = { method = m })
+                    Text(m.name.replace("_", " "))
+                }
+            }
+        }
+    }
+
+    Button(onClick = { 
+        onSave(name, amount.toDoubleOrNull() ?: 0.0, type, freq, method, if (type == BudgetType.INCOME) targetId else null, if (method == PaymentMethod.CREDIT_CARD) targetId else null)
+    }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
+        Text("Add Budget Item")
     }
 }

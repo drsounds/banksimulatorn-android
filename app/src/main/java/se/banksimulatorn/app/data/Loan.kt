@@ -14,6 +14,7 @@ data class Loan(
     val nextPaymentDate: String,
     val invoiceCycleDay: Int = 1,
     val loanFee: Double = 0.0,
+    val collateralAssetId: Int? = null,
     val deletedAt: Long? = null,
     val closedAt: Long? = null
 )

@@ -2,23 +2,20 @@ package se.banksimulatorn.app.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import se.banksimulatorn.app.data.Account
-import se.banksimulatorn.app.data.BankDao
-import se.banksimulatorn.app.data.CreditCard
-import se.banksimulatorn.app.data.Loan
-import se.banksimulatorn.app.data.Transaction
-import se.banksimulatorn.app.data.RevolvingCreditAccount
-import se.banksimulatorn.app.data.Invoice
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import se.banksimulatorn.app.data.*
 
 class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
 
+    private val _shouldOnboard = MutableStateFlow(false)
+    val shouldOnboard: StateFlow<Boolean> = _shouldOnboard.asStateFlow()
+
     init {
         viewModelScope.launch {
-            bankDao.seedDefaultData()
+            if (bankDao.hasGlobalSettings() == 0) {
+                _shouldOnboard.value = true
+            }
         }
     }
 

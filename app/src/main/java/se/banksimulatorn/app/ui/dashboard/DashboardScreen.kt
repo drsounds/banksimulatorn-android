@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ fun DashboardScreen(
     onCreditClick: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
     onInvoiceClick: (Int) -> Unit,
+    onOnboardRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val accounts by viewModel.accounts.collectAsState()
@@ -51,7 +53,14 @@ fun DashboardScreen(
     val revolvingCredits by viewModel.revolvingCredits.collectAsState()
     val allTransactions by viewModel.allTransactions.collectAsState()
     val openInvoices by viewModel.openInvoices.collectAsState()
+    val shouldOnboard by viewModel.shouldOnboard.collectAsState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    LaunchedEffect(shouldOnboard) {
+        if (shouldOnboard) {
+            onOnboardRequest()
+        }
+    }
 
     Column(modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)) {
         LargeTopAppBar(

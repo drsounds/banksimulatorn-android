@@ -124,6 +124,36 @@ interface BankDao {
     @Update
     suspend fun updateRecurringTask(task: RecurringTask)
 
+    // Assets
+    @Query("SELECT * FROM assets WHERE deletedAt IS NULL")
+    fun getAllAssets(): Flow<List<Asset>>
+
+    @Insert
+    suspend fun insertAsset(asset: Asset)
+
+    @Update
+    suspend fun updateAsset(asset: Asset)
+
+    // Budget Items
+    @Query("SELECT * FROM budget_items WHERE deletedAt IS NULL")
+    fun getAllBudgetItems(): Flow<List<BudgetItem>>
+
+    @Query("SELECT * FROM budget_items WHERE deletedAt IS NULL")
+    suspend fun getAllBudgetItemsSync(): List<BudgetItem>
+
+    @Insert
+    suspend fun insertBudgetItem(item: BudgetItem)
+
+    @Update
+    suspend fun updateBudgetItem(item: BudgetItem)
+
+    // Personas
+    @Query("SELECT * FROM personas")
+    fun getAllPersonas(): Flow<List<Persona>>
+
+    @Insert
+    suspend fun insertPersona(persona: Persona)
+
     // Global Settings
     @Query("SELECT * FROM global_settings WHERE id = 1")
     fun getGlobalSettings(): Flow<GlobalSettings?>
@@ -273,7 +303,7 @@ interface BankDao {
         if (hasGlobalSettings() > 0) return
 
         val defaultCurrency = "SEK"
-        updateGlobalSettings(GlobalSettings(currency = defaultCurrency))
+        updateGlobalSettings(GlobalSettings(currency = defaultCurrency, country = "Sweden"))
         
         val isNordic = listOf("SEK", "NOK", "DKK").contains(defaultCurrency)
         val scale = if (isNordic) 1.0 else 0.1
@@ -282,6 +312,7 @@ interface BankDao {
         val deposit2 = 16000.0 * scale
         val now = System.currentTimeMillis()
 
+        // Checking 1
         insertAccount(Account(id = 1, name = "Checking 1", accountNumber = "9999-1111", balance = deposit1, type = AccountType.CHECKING))
         insertTransaction(Transaction(
             accountId = 1,
@@ -292,6 +323,7 @@ interface BankDao {
             status = TransactionStatus.COMPLETED
         ))
 
+        // Checking 2
         insertAccount(Account(id = 2, name = "Checking 2", accountNumber = "9999-2222", balance = deposit2, type = AccountType.CHECKING))
         insertTransaction(Transaction(
             accountId = 2,
@@ -302,8 +334,10 @@ interface BankDao {
             status = TransactionStatus.COMPLETED
         ))
         
+        // Credit Card
         insertRevolvingCredit(RevolvingCreditAccount(id = 1, name = "Credit Card", creditLimit = 10000.0 * scale, interestRate = 15.5, statementDay = 25))
         
+        // Linking Cards
         insertCreditCard(CreditCard(id = 1, name = "Debit Card", cardNumber = "4242-4242-1111-1111", type = CardType.DEBIT, linkedAccountId = 1))
         insertCreditCard(CreditCard(id = 2, name = "Credit Card", cardNumber = "4242-4242-2222-2222", type = CardType.CREDIT, linkedCreditAccountId = 1))
     }

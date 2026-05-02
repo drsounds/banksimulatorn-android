@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,6 @@ fun SettingsScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // --- Import Launcher ---
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -48,7 +48,6 @@ fun SettingsScreen(
         }
     }
 
-    // --- Export Launcher ---
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
@@ -71,7 +70,6 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings), style = MaterialTheme.typography.headlineMedium)
             }
 
-            // --- Currency Selection ---
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -106,7 +104,40 @@ fun SettingsScreen(
                 }
             }
 
-            // --- Data Maintenance ---
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Country", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val countries = listOf("Sweden", "Norway", "Denmark", "USA", "Finland", "Germany")
+                        var expanded by remember { mutableStateOf(false) }
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded }
+                        ) {
+                            OutlinedTextField(
+                                value = settings?.country ?: "Sweden",
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                countries.forEach { country ->
+                                    DropdownMenuItem(
+                                        text = { Text(country) },
+                                        onClick = {
+                                            viewModel.updateCountry(country)
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
@@ -141,20 +172,16 @@ fun SettingsScreen(
                 }
             }
 
-            // --- Closed Accounts ---
             if (closedAccounts.isNotEmpty() || closedCredits.isNotEmpty() || closedLoans.isNotEmpty()) {
                 item {
                     Text(stringResource(R.string.closed_accounts), style = MaterialTheme.typography.titleLarge)
                 }
-                
                 items(closedAccounts) { account ->
                     ClosedAccountItem(name = account.name, onReopen = { viewModel.reopenAccount(account) })
                 }
-                
                 items(closedCredits) { credit ->
                     ClosedAccountItem(name = credit.name, onReopen = { viewModel.reopenRevolvingCredit(credit) })
                 }
-                
                 items(closedLoans) { loan ->
                     ClosedAccountItem(name = loan.name, onReopen = { viewModel.reopenLoan(loan) })
                 }

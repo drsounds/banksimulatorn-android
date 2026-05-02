@@ -88,6 +88,15 @@
     <string name="create_account">Luo tili</string>
     <string name="home">Koti</string>
     <string name="settings">Asetukset</string>
+    <string name="country">Maa</string>
+    <string name="sweden">Ruotsi</string>
+    <string name="norway">Norja</string>
+    <string name="denmark">Tanska</string>
+    <string name="usa">USA</string>
+    <string name="finland">Suomi</string>
+    <string name="germany">Saksa</string>
+    <string name="france">Ranska</string>
+    <string name="italy">Italia</string>
     <string name="open_invoices">Avoimet laskut</string>
     <string name="invoices">Laskut</string>
     <string name="pay">Maksa</string>

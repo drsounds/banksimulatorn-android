@@ -10,12 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.Wallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +31,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entryProvider
+import se.banksimulatorn.app.ai.GeminiManager
 import se.banksimulatorn.app.data.BankDatabase
 import se.banksimulatorn.app.navigation.AccountSettingsType
 import se.banksimulatorn.app.navigation.Destination
@@ -47,6 +52,10 @@ import se.banksimulatorn.app.ui.transaction_detail.BlockedTransactionDetailViewM
 import se.banksimulatorn.app.ui.settings.*
 import se.banksimulatorn.app.ui.create.*
 import se.banksimulatorn.app.ui.invoice.*
+import se.banksimulatorn.app.ui.assets.*
+import se.banksimulatorn.app.ui.budget.*
+import se.banksimulatorn.app.ui.onboarding.*
+import se.banksimulatorn.app.ui.aichat.*
 import se.banksimulatorn.app.ui.timemachine.TimeMachineBar
 import se.banksimulatorn.app.ui.timemachine.TimeMachineViewModel
 import se.banksimulatorn.app.ui.theme.BankingSimulatorTheme
@@ -60,11 +69,18 @@ class MainActivity : ComponentActivity() {
         
         val database = BankDatabase.getDatabase(this)
         val bankDao = database.bankDao()
+        val geminiManager = GeminiManager(apiKey = se.banksimulatorn.app.BuildConfig.GEMINI_API_KEY)
 
         setContent {
             BankingSimulatorTheme {
                 val backStack = rememberNavBackStack(Destination.Dashboard as NavKey)
                 val timeMachineViewModel: TimeMachineViewModel = viewModel { TimeMachineViewModel(bankDao) }
+
+                LaunchedEffect(Unit) {
+                    if (bankDao.hasGlobalSettings() == 0) {
+                        backStack.add(Destination.Onboarding)
+                    }
+                }
                 
                 val popSafe = {
                     if (backStack.size > 1) {
@@ -74,18 +90,6 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    floatingActionButton = {
-                        val currentDestination = backStack.lastOrNull()
-                        if (currentDestination == Destination.Dashboard) {
-                            LargeFloatingActionButton(
-                                onClick = { backStack.add(Destination.CreateAccount) },
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            ) {
-                                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.create_new))
-                            }
-                        }
-                    },
                     bottomBar = {
                         Column {
                             TimeMachineBar(
@@ -106,14 +110,22 @@ class MainActivity : ComponentActivity() {
                                     label = { Text(stringResource(R.string.home)) }
                                 )
                                 NavigationBarItem(
-                                    selected = currentDestination == Destination.History,
-                                    onClick = { 
-                                        if (currentDestination != Destination.History) {
-                                            backStack.add(Destination.History)
-                                        }
-                                    },
-                                    icon = { Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history)) },
-                                    label = { Text(stringResource(R.string.transaction_history)) }
+                                    selected = currentDestination == Destination.Budget,
+                                    onClick = { if (currentDestination != Destination.Budget) backStack.add(Destination.Budget) },
+                                    icon = { Icon(Icons.Rounded.ReceiptLong, contentDescription = "Budget") },
+                                    label = { Text("Budget") }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == Destination.Assets,
+                                    onClick = { if (currentDestination != Destination.Assets) backStack.add(Destination.Assets) },
+                                    icon = { Icon(Icons.Rounded.Wallet, contentDescription = "Assets") },
+                                    label = { Text("Assets") }
+                                )
+                                NavigationBarItem(
+                                    selected = currentDestination == Destination.AIChat,
+                                    onClick = { if (currentDestination != Destination.AIChat) backStack.add(Destination.AIChat) },
+                                    icon = { Icon(Icons.Rounded.AutoAwesome, contentDescription = "AI Sim") },
+                                    label = { Text("AI Sim") }
                                 )
                                 NavigationBarItem(
                                     selected = currentDestination == Destination.Settings,
@@ -160,8 +172,29 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onInvoiceClick = { id ->
                                         backStack.add(Destination.InvoicePayment(id))
+                                    },
+                                    onOnboardRequest = {
+                                        backStack.add(Destination.Onboarding)
                                     }
                                 )
+                            }
+                            entry<Destination.Budget> {
+                                val budgetViewModel: BudgetViewModel = viewModel { BudgetViewModel(bankDao) }
+                                BudgetScreen(
+                                    viewModel = budgetViewModel,
+                                    onCreateBudget = { backStack.add(Destination.CreateAccount) }
+                                )
+                            }
+                            entry<Destination.Assets> {
+                                val assetViewModel: AssetViewModel = viewModel { AssetViewModel(bankDao) }
+                                AssetScreen(
+                                    viewModel = assetViewModel,
+                                    onCreateAsset = { backStack.add(Destination.CreateAccount) }
+                                )
+                            }
+                            entry<Destination.AIChat> {
+                                val aiChatViewModel: AIChatViewModel = viewModel { AIChatViewModel(bankDao, geminiManager) }
+                                AIChatScreen(viewModel = aiChatViewModel)
                             }
                             entry<Destination.History> {
                                 val historyViewModel: HistoryViewModel = viewModel {
@@ -171,6 +204,12 @@ class MainActivity : ComponentActivity() {
                                     viewModel = historyViewModel,
                                     onBack = popSafe
                                 )
+                            }
+                            entry<Destination.Onboarding> {
+                                val onboardingViewModel: OnboardingViewModel = viewModel {
+                                    OnboardingViewModel(bankDao, geminiManager)
+                                }
+                                OnboardingScreen(viewModel = onboardingViewModel)
                             }
                             entry<Destination.TransactionSimulator> { key ->
                                 val transactionViewModel: TransactionViewModel = viewModel {

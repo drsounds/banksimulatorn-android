@@ -74,7 +74,7 @@
     <string name="interest_capitalization_day">Kapitaliseringsdag (1&#8211;31)</string>
     <string name="invoice_cycle_day">Faktureringsdag (1&#8211;31)</string>
     <string name="bnpl_mode">BNPL-modus (Individuell avstemming)</string>
-    <string name="loan_fee">Månedsavgift lån</string>
+    <string name="loan_fee">Månadsavgift lån</string>
     <string name="interest_rate">Rentesats (%)</string>
     <string name="save_settings">Lagre innstillinger</string>
     <string name="settings_saved">Innstillinger lagret</string>
@@ -88,6 +88,15 @@
     <string name="create_new">Opprett ny</string>
     <string name="home">Hjem</string>
     <string name="settings">Innstillinger</string>
+    <string name="country">Land</string>
+    <string name="sweden">Sverige</string>
+    <string name="norway">Norge</string>
+    <string name="denmark">Danmark</string>
+    <string name="usa">USA</string>
+    <string name="finland">Finland</string>
+    <string name="germany">Tyskland</string>
+    <string name="france">Frankrike</string>
+    <string name="italy">Italia</string>
     <string name="open_invoices">Åpne fakturaer</string>
     <string name="invoices">Fakturaer</string>
     <string name="pay">Betal</string>

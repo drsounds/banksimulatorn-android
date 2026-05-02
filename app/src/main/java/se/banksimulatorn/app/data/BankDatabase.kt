@@ -16,9 +16,12 @@ import androidx.room.TypeConverters
         RevolvingCreditAccount::class,
         GlobalSettings::class,
         Invoice::class,
-        RecurringTask::class
+        RecurringTask::class,
+        Asset::class,
+        BudgetItem::class,
+        Persona::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

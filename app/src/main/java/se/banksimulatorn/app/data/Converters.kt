@@ -44,4 +44,28 @@ class Converters {
 
     @TypeConverter
     fun toRecurringFrequency(value: String): RecurringFrequency = RecurringFrequency.valueOf(value)
+
+    @TypeConverter
+    fun fromAssetType(value: AssetType): String = value.name
+
+    @TypeConverter
+    fun toAssetType(value: String): AssetType = AssetType.valueOf(value)
+
+    @TypeConverter
+    fun fromBudgetType(value: BudgetType): String = value.name
+
+    @TypeConverter
+    fun toBudgetType(value: String): BudgetType = BudgetType.valueOf(value)
+
+    @TypeConverter
+    fun fromBudgetFrequency(value: BudgetFrequency): String = value.name
+
+    @TypeConverter
+    fun toBudgetFrequency(value: String): BudgetFrequency = BudgetFrequency.valueOf(value)
+
+    @TypeConverter
+    fun fromPaymentMethod(value: PaymentMethod): String = value.name
+
+    @TypeConverter
+    fun toPaymentMethod(value: String): PaymentMethod = PaymentMethod.valueOf(value)
 }
