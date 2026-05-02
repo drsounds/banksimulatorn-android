@@ -21,7 +21,7 @@ import androidx.room.TypeConverters
         BudgetItem::class,
         Persona::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

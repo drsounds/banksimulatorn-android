@@ -9,6 +9,7 @@ data class Invoice(
     val parentId: Int, // Link to Account/Credit/Loan/Recurring
     val parentType: String, // "ACCOUNT", "CREDIT", "LOAN", "RECURRING"
     val amount: Double,
+    val paidAmount: Double = 0.0,
     val minimumAmount: Double = 0.0,
     val dueDate: Long,
     val issuedDate: Long,

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
@@ -28,8 +30,15 @@ fun InvoicePaymentScreen(
     val invoice by viewModel.invoice.collectAsState()
     val accounts by viewModel.accounts.collectAsState()
     var selectedAccountId by remember { mutableStateOf<Int?>(null) }
+    var customAmountText by remember { mutableStateOf("") }
     
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+
+    LaunchedEffect(invoice) {
+        invoice?.let {
+            customAmountText = (it.amount - it.paidAmount).toString()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -59,15 +68,26 @@ fun InvoicePaymentScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.invoice_details), style = MaterialTheme.typography.titleLarge)
-                        DetailRow("Amount", currencyFormatter.format(inv.amount).replace("€", ""))
+                        DetailRow("Total Amount", currencyFormatter.format(inv.amount).replace("€", ""))
+                        DetailRow("Paid Amount", currencyFormatter.format(inv.paidAmount).replace("€", ""))
+                        DetailRow("Remaining", currencyFormatter.format(inv.amount - inv.paidAmount).replace("€", ""))
                         DetailRow(stringResource(R.string.minimum_amount), currencyFormatter.format(inv.minimumAmount).replace("€", ""))
                         DetailRow("Status", inv.status.name)
                     }
                 }
 
+                OutlinedTextField(
+                    value = customAmountText,
+                    onValueChange = { customAmountText = it },
+                    label = { Text("Payment Amount") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    suffix = { Text("SEK") }
+                )
+
                 Text(stringResource(R.string.select_payment_account), style = MaterialTheme.typography.titleMedium)
                 
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(accounts) { acc ->
                         Card(
                             modifier = Modifier
@@ -88,15 +108,14 @@ fun InvoicePaymentScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
+                val finalAmount = customAmountText.replace(",", ".").toDoubleOrNull() ?: 0.0
                 Button(
-                    onClick = { selectedAccountId?.let { viewModel.payInvoice(it, inv.amount) } },
-                    enabled = selectedAccountId != null,
+                    onClick = { selectedAccountId?.let { viewModel.payInvoice(it, finalAmount) } },
+                    enabled = selectedAccountId != null && finalAmount > 0,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = MaterialTheme.shapes.extraLarge
                 ) {
-                    Text(stringResource(R.string.pay) + " " + currencyFormatter.format(inv.amount).replace("€", ""))
+                    Text(stringResource(R.string.pay) + " " + currencyFormatter.format(finalAmount).replace("€", ""))
                 }
             }
         }

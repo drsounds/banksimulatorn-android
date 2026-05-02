@@ -71,12 +71,14 @@ class InvoicePaymentViewModel(
                     }
                 }
 
-                // 3. Update invoice status (PAID if amount fully covers it)
-                if (amount >= inv.amount) {
-                    bankDao.updateInvoice(inv.copy(status = InvoiceStatus.PAID))
-                } else {
-                    bankDao.updateInvoice(inv.copy(amount = inv.amount - amount))
-                }
+                // 3. Update invoice status
+                val newPaidAmount = inv.paidAmount + amount
+                val isFullyPaid = newPaidAmount >= inv.amount
+                
+                bankDao.updateInvoice(inv.copy(
+                    paidAmount = newPaidAmount,
+                    status = if (isFullyPaid) InvoiceStatus.PAID else inv.status
+                ))
 
                 _uiEvent.emit(InvoiceUiEvent.Success)
             } catch (e: Exception) {

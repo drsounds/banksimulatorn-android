@@ -148,8 +148,10 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
             val allActiveInvoices = bankDao.getAllInvoices().first().filter { it.status != InvoiceStatus.PAID && it.deletedAt == null }
             allActiveInvoices.forEach { invoice ->
                 var updatedInvoice = invoice
+                val remainingAmount = updatedInvoice.amount - updatedInvoice.paidAmount
+                
                 if (invoice.status == InvoiceStatus.OVERDUE || invoice.status == InvoiceStatus.COLLECTION) {
-                    val dailyLateInterest = updatedInvoice.amount * (invoice.overdueInterestRate / 100.0 / 365.0)
+                    val dailyLateInterest = remainingAmount * (invoice.overdueInterestRate / 100.0 / 365.0)
                     updatedInvoice = updatedInvoice.copy(amount = updatedInvoice.amount + dailyLateInterest)
                 }
                 if (nextTime > invoice.dueDate && (invoice.status == InvoiceStatus.PENDING || invoice.status == InvoiceStatus.REMINDER)) {
@@ -158,7 +160,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                         Invoice(
                             parentId = invoice.parentId,
                             parentType = invoice.parentType,
-                            amount = updatedInvoice.amount,
+                            amount = updatedInvoice.amount - updatedInvoice.paidAmount, // Carry forward remaining balance
                             minimumAmount = invoice.minimumAmount,
                             issuedDate = nextTime,
                             dueDate = nextTime + (7L * 86400000L),
