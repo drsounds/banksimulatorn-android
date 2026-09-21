@@ -56,7 +56,10 @@ The app is built with an **Expressive M3** design language. This includes:
 
 ## 🚀 Google Play Release (GitHub Actions)
 
-A manually-triggered workflow (`.github/workflows/android-play-release.yml`) builds a signed release AAB and uploads it to a Google Play testing track (defaults to **internal**). It never runs automatically on push — trigger it from the **Actions** tab via "Run workflow", choosing the target track and optionally entering release notes.
+Two manually-triggered workflows handle release builds. Neither runs automatically on push — both are started from the **Actions** tab via "Run workflow".
+
+- **`android-build.yml`** — builds and signs the release AAB, then uploads it as a downloadable workflow artifact (`release-aab`, kept 14 days). Run this on its own whenever you just need a signed AAB, e.g. to upload manually via the Play Console (including the required first-ever release — see below).
+- **`android-play-release.yml`** — calls `android-build.yml` as its `build` job, then a separate `publish` job downloads that artifact and uploads it to a Google Play testing track (defaults to **internal**) via the Play Developer API. Because build and publish are separate jobs, if publishing fails (bad credentials, track misconfigured, etc.) GitHub's "Re-run failed jobs" re-runs only `publish` and reuses the already-built AAB — no rebuild needed.
 
 **Signing model**: Google Play manages the actual app signing key ([Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756), enabled by default for new apps). CI only needs an **upload key** — a keystore used to sign the bundle you hand to Google, which Google then re-signs with the real distribution key it holds. Losing the upload key isn't fatal (Google can help you reset it via a support request), but treat it as a long-lived credential — it stays valid for every future release.
 
@@ -72,9 +75,9 @@ Configure these repository secrets before running it:
 
 The service account must be linked in Google Play Console under **Setup → API access**, with permission to manage releases on the `se.banksimulatorn.app` package.
 
-**One-time setup before the first CI run:**
-1. The Play Developer API cannot create an app's very first release — Play Console requires that to happen through its web UI. Manually upload one signed AAB (built with the same upload key you'll use for CI) via **Play Console → Release → Internal testing → Create release** to establish the app listing and enroll it in Play App Signing.
-2. After that first manual release exists, all subsequent releases (including from this workflow) can go through the API.
+**One-time setup before the first `android-play-release.yml` run:**
+1. The Play Developer API cannot create an app's very first release — Play Console requires that to happen through its web UI. Run `android-build.yml`, download the `release-aab` artifact from the run, and manually upload it via **Play Console → Release → Internal testing → Create release** to establish the app listing and enroll it in Play App Signing.
+2. After that first manual release exists, all subsequent releases can go through `android-play-release.yml`.
 
 ---
 *Developed as a modern Android simulation project.*
