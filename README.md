@@ -54,5 +54,21 @@ The app is built with an **Expressive M3** design language. This includes:
 - Motion-driven UI transitions between screens and adaptive panes.
 - An **Adaptive App Icon** featuring a vibrant gradient and minimalist iconography.
 
+## 🚀 Google Play Release (GitHub Actions)
+
+A manually-triggered workflow (`.github/workflows/android-play-release.yml`) builds a signed release AAB and uploads it to a Google Play testing track (defaults to **internal**). It never runs automatically on push — trigger it from the **Actions** tab via "Run workflow", choosing the target track and optionally entering release notes.
+
+Configure these repository secrets before running it:
+
+| Secret | Description |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Your release keystore file, base64-encoded (`base64 -w0 release.keystore`). |
+| `ANDROID_KEYSTORE_PASSWORD` | Password for the keystore. |
+| `ANDROID_KEY_ALIAS` | Alias of the signing key inside the keystore. |
+| `ANDROID_KEY_PASSWORD` | Password for the signing key. |
+| `PLAY_SERVICE_ACCOUNT_JSON` | JSON key of a Google Play service account with "Release Manager" access to this app, pasted as plain text. |
+
+The service account must be linked in Google Play Console under **Setup → API access**, with permission to manage releases on the `se.banksimulatorn.app` package.
+
 ---
 *Developed as a modern Android simulation project.*
