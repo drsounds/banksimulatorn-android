@@ -54,5 +54,27 @@ The app is built with an **Expressive M3** design language. This includes:
 - Motion-driven UI transitions between screens and adaptive panes.
 - An **Adaptive App Icon** featuring a vibrant gradient and minimalist iconography.
 
+## 🚀 Google Play Release (GitHub Actions)
+
+A manually-triggered workflow (`.github/workflows/android-play-release.yml`) builds a signed release AAB and uploads it to a Google Play testing track (defaults to **internal**). It never runs automatically on push — trigger it from the **Actions** tab via "Run workflow", choosing the target track and optionally entering release notes.
+
+**Signing model**: Google Play manages the actual app signing key ([Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756), enabled by default for new apps). CI only needs an **upload key** — a keystore used to sign the bundle you hand to Google, which Google then re-signs with the real distribution key it holds. Losing the upload key isn't fatal (Google can help you reset it via a support request), but treat it as a long-lived credential — it stays valid for every future release.
+
+Configure these repository secrets before running it:
+
+| Secret | Description |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | The upload keystore file, base64-encoded (`base64 -w0 upload-keystore.jks`). |
+| `ANDROID_KEYSTORE_PASSWORD` | Store password for the keystore. |
+| `ANDROID_KEY_ALIAS` | Alias of the upload key inside the keystore. |
+| `ANDROID_KEY_PASSWORD` | Password for the key itself (same as the store password for a PKCS12 keystore). |
+| `PLAY_SERVICE_ACCOUNT_JSON` | JSON key of a Google Play service account with "Release Manager" access to this app, pasted as plain text. |
+
+The service account must be linked in Google Play Console under **Setup → API access**, with permission to manage releases on the `se.banksimulatorn.app` package.
+
+**One-time setup before the first CI run:**
+1. The Play Developer API cannot create an app's very first release — Play Console requires that to happen through its web UI. Manually upload one signed AAB (built with the same upload key you'll use for CI) via **Play Console → Release → Internal testing → Create release** to establish the app listing and enroll it in Play App Signing.
+2. After that first manual release exists, all subsequent releases (including from this workflow) can go through the API.
+
 ---
 *Developed as a modern Android simulation project.*

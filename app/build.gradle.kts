@@ -21,7 +21,7 @@ android {
         minSdk = 31
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -33,7 +33,32 @@ android {
         compose = true
         buildConfig = true
     }
-    // ...
+
+    signingConfigs {
+        create("release") {
+            val storeFilePath = System.getenv("ANDROID_KEYSTORE_PATH")
+                ?: localProps.getProperty("RELEASE_STORE_FILE")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                    ?: localProps.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                    ?: localProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+                    ?: localProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfigs.getByName("release").let {
+                if (it.storeFile != null) signingConfig = it
+            }
+        }
+    }
 }
 
 dependencies {
