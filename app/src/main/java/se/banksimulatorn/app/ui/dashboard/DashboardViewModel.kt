@@ -3,21 +3,19 @@ package se.banksimulatorn.app.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.*
 
 class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
 
-    private val _shouldOnboard = MutableStateFlow(false)
-    val shouldOnboard: StateFlow<Boolean> = _shouldOnboard.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            if (bankDao.hasGlobalSettings() == 0) {
-                _shouldOnboard.value = true
-            }
-        }
-    }
+    // Follows the database so it turns false as soon as onboarding has created the
+    // initial accounts; a one-shot flag stayed true and reopened onboarding.
+    val shouldOnboard: StateFlow<Boolean> = bankDao.getGlobalSettings()
+        .map { it == null }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
 
     val accounts: StateFlow<List<Account>> = bankDao.getAllAccounts()
         .stateIn(

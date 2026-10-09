@@ -77,12 +77,10 @@ class MainActivity : ComponentActivity() {
                 val timeMachineViewModel: TimeMachineViewModel = viewModel { TimeMachineViewModel(bankDao) }
 
                 LaunchedEffect(Unit) {
-                    // Trigger download and readiness check for Gemini Nano
+                    // Trigger download and readiness check for Gemini Nano.
+                    // First-launch onboarding is opened by the dashboard (shouldOnboard);
+                    // opening it here as well pushed it twice and crashed on first start.
                     geminiManager.triggerDownload()
-
-                    if (bankDao.hasGlobalSettings() == 0) {
-                        backStack.add(Destination.Onboarding)
-                    }
                 }
                 
                 val popSafe = {
@@ -177,7 +175,9 @@ class MainActivity : ComponentActivity() {
                                         backStack.add(Destination.InvoicePayment(id))
                                     },
                                     onOnboardRequest = {
-                                        backStack.add(Destination.Onboarding)
+                                        if (Destination.Onboarding !in backStack) {
+                                            backStack.add(Destination.Onboarding)
+                                        }
                                     }
                                 )
                             }
