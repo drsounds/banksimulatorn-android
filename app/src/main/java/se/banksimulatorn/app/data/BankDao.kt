@@ -254,6 +254,8 @@ interface BankDao {
         clearRevolvingCredits()
         clearInvoices()
         clearRecurringTasks()
+        clearAssets()
+        clearBudgetItems()
     }
 
     @Query("DELETE FROM accounts")
@@ -277,6 +279,12 @@ interface BankDao {
     @Query("DELETE FROM recurring_tasks")
     suspend fun clearRecurringTasks()
 
+    @Query("DELETE FROM assets")
+    suspend fun clearAssets()
+
+    @Query("DELETE FROM budget_items")
+    suspend fun clearBudgetItems()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAccounts(accounts: List<Account>)
 
@@ -298,9 +306,45 @@ interface BankDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecurringTasks(tasks: List<RecurringTask>)
 
+    /**
+     * Replaces everything with an onboarding bundle in one transaction, so a failure
+     * part-way (e.g. a malformed AI response) leaves no half-created accounts behind.
+     */
+    @RoomTransaction
+    suspend fun replaceAllData(
+        accounts: List<Account>,
+        transactions: List<Transaction>,
+        loans: List<Loan>,
+        creditCards: List<CreditCard>,
+        revolvingCredits: List<RevolvingCreditAccount>,
+        invoices: List<Invoice>,
+        recurringTasks: List<RecurringTask>,
+        assets: List<Asset>,
+        budgetItems: List<BudgetItem>,
+        globalSettings: GlobalSettings
+    ) {
+        clearAllData()
+        insertAccounts(accounts)
+        insertRevolvingCredits(revolvingCredits)
+        insertTransactions(transactions)
+        insertLoans(loans)
+        insertCreditCards(creditCards)
+        insertInvoices(invoices)
+        insertRecurringTasks(recurringTasks)
+        assets.forEach { insertAsset(it) }
+        budgetItems.forEach { insertBudgetItem(it) }
+        updateGlobalSettings(globalSettings)
+    }
+
+    /**
+     * Creates the default set of accounts and cards. Always starts from an empty
+     * database: the fixed ids below would otherwise collide with rows left behind
+     * by an earlier, failed onboarding attempt, and "Reset system" relies on this
+     * running even though global settings already exist.
+     */
     @RoomTransaction
     suspend fun seedDefaultData() {
-        if (hasGlobalSettings() > 0) return
+        clearAllData()
 
         val defaultCurrency = "SEK"
         updateGlobalSettings(GlobalSettings(currency = defaultCurrency, country = "Sweden"))
