@@ -20,7 +20,14 @@ android {
         applicationId = "se.banksimulatorn.app"
         minSdk = 31
         targetSdk = 37
-        versionCode = 1
+        // GITHUB_RUN_NUMBER strictly increases on every Actions run, so a
+        // CI-built AAB always carries a versionCode Google Play hasn't seen
+        // before, with no manual bumping (Play rejects any upload that reuses
+        // a code, even one claimed by a failed or manual upload). When the
+        // build runs via android-play-release.yml, the reusable build
+        // workflow sees the release workflow's run number. Falls back to 1
+        // for local builds, which are never used for Play Store uploads.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
