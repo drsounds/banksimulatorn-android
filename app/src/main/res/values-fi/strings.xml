@@ -21,6 +21,7 @@
     <string name="credit_limit">Luottoraja</string>
     <string name="used_credit">Käytetty luotto</string>
     <string name="interest">Korko</string>
+    <string name="fee">Maksu</string>
     <string name="pending_authorizations">Odottavat varaukset</string>
     <string name="upcoming_payment">Tuleva maksu</string>
     <string name="unpaid">Maksamatta</string>

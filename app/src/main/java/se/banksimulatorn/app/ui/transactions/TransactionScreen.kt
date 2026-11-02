@@ -151,6 +151,7 @@ fun TransactionScreen(
                         TransactionType.TRANSFER -> R.string.transfer
                         TransactionType.INTEREST -> R.string.interest
                         TransactionType.INSTALLMENT -> R.string.installment
+                        TransactionType.FEE -> R.string.fee
                     })
                     Text(
                         text = stringResource(R.string.confirm_transaction, typeString),

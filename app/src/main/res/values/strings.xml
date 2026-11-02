@@ -20,6 +20,7 @@
     <string name="credit_limit">Credit Limit</string>
     <string name="used_credit">Used credit</string>
     <string name="interest">Interest</string>
+    <string name="fee">Fee</string>
     <string name="pending_authorizations">Pending authorizations</string>
     <string name="upcoming_payment">Upcoming payment</string>
     <string name="unpaid">Unpaid</string>
