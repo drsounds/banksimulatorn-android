@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -70,11 +71,11 @@ fun LoanDetailScreen(
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
-                                Text(currencyFormatter.format(0.0 - l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                                Text(currencyFormatter.formatMoney(0.0 - l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.pending_interest), style = MaterialTheme.typography.bodyLarge)
-                                Text(currencyFormatter.format(0.0 - l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                                Text(currencyFormatter.formatMoney(0.0 - l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                         }
                     }
@@ -99,7 +100,7 @@ fun LoanDetailScreen(
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("June 30th", style = MaterialTheme.typography.headlineLarge, color = Color(0xFF2E4053))
                                 Column(horizontalAlignment = Alignment.End) {
-                                    Text(currencyFormatter.format(l.nextPaymentAmount).replace("€", ""), style = MaterialTheme.typography.headlineLarge, color = Color(0xFF2E4053))
+                                    Text(currencyFormatter.formatMoney(l.nextPaymentAmount).replace("€", ""), style = MaterialTheme.typography.headlineLarge, color = Color(0xFF2E4053))
                                     Text("6 550,00", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                                 }
                             }
@@ -157,7 +158,7 @@ fun LoanTransactionItem(
             ) {
                 Text(title, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
                 Text(
-                    (if (isPositive) "+" else "") + currencyFormatter.format(amount).replace("€", ""),
+                    (if (isPositive) "+" else "") + currencyFormatter.formatMoney(amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = if (isPositive) Color(0xFF006C4C) else Color(0xFFBA1A1A)
                 )

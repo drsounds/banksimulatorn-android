@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -77,7 +78,7 @@ fun BlockedTransactionDetailScreen(
                                 
                                 val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
                                 Text(
-                                    currencyFormatter.format(t.amount).replace("€", ""),
+                                    currencyFormatter.formatMoney(t.amount).replace("€", ""),
                                     style = MaterialTheme.typography.displaySmall,
                                     color = if (t.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
                                 )

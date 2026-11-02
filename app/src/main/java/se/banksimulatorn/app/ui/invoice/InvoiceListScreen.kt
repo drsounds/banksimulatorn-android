@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.InvoiceChains
+import se.banksimulatorn.app.data.formatMoney
 import se.banksimulatorn.app.ui.dashboard.InvoiceItemDesign
 import java.text.NumberFormat
 import java.util.Locale
@@ -63,7 +64,7 @@ fun InvoiceListScreen(
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
-                        currencyFormatter.format(total).replace("€", ""),
+                        currencyFormatter.formatMoney(total).replace("€", ""),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

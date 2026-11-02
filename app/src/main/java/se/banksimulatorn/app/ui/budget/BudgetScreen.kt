@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.util.*
 
@@ -60,7 +61,7 @@ fun BudgetScreen(
                             Text(item.name, style = MaterialTheme.typography.titleMedium)
                             Text("${item.type.name} - ${item.frequency.name}", style = MaterialTheme.typography.bodySmall)
                             Text(
-                                "Amount: ${currencyFormatter.format(item.amount).replace("€", "")}",
+                                "Amount: ${currencyFormatter.formatMoney(item.amount).replace("€", "")}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }

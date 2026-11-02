@@ -4,6 +4,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.text.NumberFormat
+import java.util.Locale
 
 class InvoiceLogicTest {
 
@@ -43,6 +45,14 @@ class InvoiceLogicTest {
         val text = InvoicePayments.formatAmountInput(1234.5600000000002)
         assertEquals("1234.56", text)
         assertEquals("12345678.90", InvoicePayments.formatAmountInput(12345678.9))
+    }
+
+    @Test
+    fun negativeZeroIsFormattedAsPositiveZero() {
+        val formatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+
+        assertEquals(formatter.format(0.0), formatter.formatMoney(-0.0))
+        assertEquals("0.00", InvoicePayments.formatAmountInput(-0.0))
     }
 
     @Test
