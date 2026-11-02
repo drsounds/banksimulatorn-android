@@ -2,10 +2,9 @@ package se.banksimulatorn.app.ui.loans
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 import se.banksimulatorn.app.data.BankDao
 import se.banksimulatorn.app.data.Loan
 
@@ -14,16 +13,11 @@ class LoanDetailViewModel(
     private val bankDao: BankDao
 ) : ViewModel() {
 
-    private val _loan = MutableStateFlow<Loan?>(null)
-    val loan: StateFlow<Loan?> = _loan.asStateFlow()
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            _loan.value = bankDao.getLoanById(loanId)
-        }
-    }
+    // Observed so the summary updates when the time machine accrues interest.
+    val loan: StateFlow<Loan?> = bankDao.observeLoanById(loanId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 }

@@ -17,7 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
-import se.banksimulatorn.app.data.Account
+import se.banksimulatorn.app.data.InvoiceChains
+import se.banksimulatorn.app.data.InvoicePayments
+import se.banksimulatorn.app.ui.create.CreateFormValidation
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -31,19 +33,21 @@ fun InvoicePaymentScreen(
     val accounts by viewModel.accounts.collectAsState()
     var selectedAccountId by remember { mutableStateOf<Int?>(null) }
     var customAmountText by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
     
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
-    LaunchedEffect(invoice) {
+    LaunchedEffect(invoice?.id) {
         invoice?.let {
-            customAmountText = (it.amount - it.paidAmount).toString()
+            customAmountText = InvoicePayments.formatAmountInput(InvoiceChains.remaining(it))
         }
     }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
-            if (event is InvoiceUiEvent.Success) {
-                onBack()
+            when (event) {
+                is InvoiceUiEvent.Success -> onBack()
+                is InvoiceUiEvent.Error -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
@@ -61,7 +65,8 @@ fun InvoicePaymentScreen(
         invoice?.let { inv ->
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -70,7 +75,7 @@ fun InvoicePaymentScreen(
                         Text(stringResource(R.string.invoice_details), style = MaterialTheme.typography.titleLarge)
                         DetailRow("Total Amount", currencyFormatter.format(inv.amount).replace("€", ""))
                         DetailRow("Paid Amount", currencyFormatter.format(inv.paidAmount).replace("€", ""))
-                        DetailRow("Remaining", currencyFormatter.format(inv.amount - inv.paidAmount).replace("€", ""))
+                        DetailRow("Remaining", currencyFormatter.format(InvoiceChains.remaining(inv)).replace("€", ""))
                         DetailRow(stringResource(R.string.minimum_amount), currencyFormatter.format(inv.minimumAmount).replace("€", ""))
                         DetailRow("Status", inv.status.name)
                     }
@@ -108,7 +113,7 @@ fun InvoicePaymentScreen(
                     }
                 }
 
-                val finalAmount = customAmountText.replace(",", ".").toDoubleOrNull() ?: 0.0
+                val finalAmount = InvoicePayments.cappedPayment(inv, CreateFormValidation.parseAmount(customAmountText) ?: 0.0)
                 Button(
                     onClick = { selectedAccountId?.let { viewModel.payInvoice(it, finalAmount) } },
                     enabled = selectedAccountId != null && finalAmount > 0,
@@ -119,6 +124,7 @@ fun InvoicePaymentScreen(
                 }
             }
         }
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.fillMaxWidth())
     }
 }
 

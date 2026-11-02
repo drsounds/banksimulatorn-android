@@ -17,6 +17,8 @@ data class Invoice(
     val reminderFee: Double = 0.0,
     val overdueInterestRate: Double = 0.0,
     val isReminder: Boolean = false,
+    /** For a reminder: the invoice (or earlier reminder) it was issued for. */
+    val relatedInvoiceId: Int? = null,
     val deletedAt: Long? = null
 )
 

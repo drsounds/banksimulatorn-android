@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.*
 
 class InvoicePaymentViewModel(
@@ -42,44 +42,11 @@ class InvoicePaymentViewModel(
     fun payInvoice(accountId: Int, amount: Double) {
         viewModelScope.launch {
             val inv = _invoice.value ?: return@launch
-            val acc = bankDao.getAccountById(accountId) ?: return@launch
-
-            if (acc.balance < amount) {
-                _uiEvent.emit(InvoiceUiEvent.Error("Insufficient funds on selected account"))
-                return@launch
-            }
-
             try {
-                // 1. Deduct from bank account
-                bankDao.performTransaction(
-                    Transaction(
-                        accountId = accountId,
-                        amount = -amount,
-                        timestamp = System.currentTimeMillis(),
-                        description = "Payment of invoice #${inv.id}",
-                        type = TransactionType.WITHDRAWAL,
-                        status = TransactionStatus.COMPLETED
-                    ),
-                    acc.copy(balance = acc.balance - amount)
-                )
-
-                // 2. Reduce debt if it's a CREDIT invoice
-                if (inv.parentType == "CREDIT") {
-                    val revolving = bankDao.getRevolvingCreditById(inv.parentId)
-                    if (revolving != null) {
-                        bankDao.updateRevolvingCredit(revolving.copy(usedCredit = revolving.usedCredit - amount))
-                    }
-                }
-
-                // 3. Update invoice status
-                val newPaidAmount = inv.paidAmount + amount
-                val isFullyPaid = newPaidAmount >= inv.amount
-                
-                bankDao.updateInvoice(inv.copy(
-                    paidAmount = newPaidAmount,
-                    status = if (isFullyPaid) InvoiceStatus.PAID else inv.status
-                ))
-
+                // Book the payment on the simulated date, not the phone's clock.
+                val now = bankDao.getTimeSettings().first()?.virtualCurrentTime ?: System.currentTimeMillis()
+                bankDao.payInvoice(inv.id, accountId, amount, now)
+                _invoice.value = bankDao.getInvoiceById(inv.id)
                 _uiEvent.emit(InvoiceUiEvent.Success)
             } catch (e: Exception) {
                 _uiEvent.emit(InvoiceUiEvent.Error(e.message ?: "Unknown error"))

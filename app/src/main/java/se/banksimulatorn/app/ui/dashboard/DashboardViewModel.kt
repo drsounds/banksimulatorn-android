@@ -45,7 +45,10 @@ class DashboardViewModel(private val bankDao: BankDao) : ViewModel() {
             initialValue = emptyList()
         )
 
+    // Invoices already carried forward by an open reminder are left out, so the
+    // count and sum match what the user actually owes.
     val openInvoices: StateFlow<List<Invoice>> = bankDao.getOpenInvoices()
+        .map { InvoiceChains.outstanding(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

@@ -144,4 +144,23 @@
     <string name="error_rate_range">Indtast en rente mellem 0 og 100</string>
     <string name="error_day_range">Indtast en dag mellem 1 og 28</string>
     <string name="error_months_range">Indtast mellem 1 og 600 måneder</string>
+
+    <!-- Overdraft fees, onboarding without AI, unpaid invoices -->
+    <string name="overdraft_section">Overtræk</string>
+    <string name="overdraft_fee">Overtræksgebyr</string>
+    <string name="overdraft_fee_help">Opkræves når kontoen er overtrukket. 0 slår gebyret fra.</string>
+    <string name="overdraft_fee_threshold">Grænse for gebyr</string>
+    <string name="overdraft_fee_threshold_help">Hvor langt under nul saldoen må gå, før gebyret opkræves.</string>
+    <string name="overdraft_fee_cooling_days">Karensperiode (dage)</string>
+    <string name="overdraft_fee_cooling_days_help">Mindste antal dage mellem to overtræksgebyrer.</string>
+    <string name="welcome_title">Velkommen til Banksimulatorn</string>
+    <string name="welcome_body">Start med nogle eksempelkonti og kort. Du kan åbne flere konti, kreditter og lån fra startskærmen.</string>
+    <string name="start_with_default_data">Start med eksempelkonti</string>
+    <string name="unpaid_invoices">Ubetalte fakturaer</string>
+    <string name="no_unpaid_invoices">Du har ingen ubetalte fakturaer.</string>
+    <string name="reminder">Rykker</string>
+    <plurals name="invoice_count">
+        <item quantity="one">%d faktura</item>
+        <item quantity="other">%d fakturaer</item>
+    </plurals>
 </resources>

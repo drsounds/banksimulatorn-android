@@ -81,18 +81,18 @@ fun CreditDetailScreen(
                             if (acc.usedCredit != 0.0) {
                                InfoRow(
                                    stringResource(R.string.used_credit),
-                                   "-" + currencyFormatter.format(acc.usedCredit).replace("€", ""),
+                                   currencyFormatter.format(0.0 - acc.usedCredit).replace("€", ""),
                                    color = Color(0xFFBA1A1A)
                                )
                             }
                             if (acc.pendingInterest != 0.0) {
                                 InfoRow(
                                     stringResource(R.string.interest),
-                                    currencyFormatter.format(-acc.pendingInterest).replace("€", "")
+                                    currencyFormatter.format(0.0 - acc.pendingInterest).replace("€", "")
                                 )
                             }
                             if (acc.pendingAuthorizations != 0.0) {
-                                InfoRow(stringResource(R.string.pending_authorizations), "-" + currencyFormatter.format(acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
+                                InfoRow(stringResource(R.string.pending_authorizations), currencyFormatter.format(0.0 - acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
                             }
                             val available =
                                 acc.creditLimit - acc.usedCredit - acc.pendingAuthorizations - acc.pendingInterest

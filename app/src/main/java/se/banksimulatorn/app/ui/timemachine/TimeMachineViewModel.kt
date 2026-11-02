@@ -57,6 +57,26 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                 }
             }
 
+            // 1b. Overdraft fees, after interest so the fee itself does not earn interest today
+            bankDao.getAllAccountsSync().forEach { account ->
+                if (OverdraftFees.shouldCharge(account, nextTime)) {
+                    bankDao.performTransaction(
+                        Transaction(
+                            accountId = account.id,
+                            amount = -account.overdraftFee,
+                            timestamp = nextTime,
+                            description = "Overdraft fee",
+                            type = TransactionType.FEE,
+                            status = TransactionStatus.COMPLETED
+                        ),
+                        account.copy(
+                            balance = account.balance - account.overdraftFee,
+                            lastOverdraftFeeAt = nextTime
+                        )
+                    )
+                }
+            }
+
             // 2. Revolving Credit Invoicing & Statements
             val credits = bankDao.getAllRevolvingCreditsSync()
             credits.forEach { credit ->
@@ -77,7 +97,24 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                 var updatedCredit = credit.copy(pendingInterest = credit.pendingInterest + dailyInterest)
 
                 if (dayOfMonth == credit.statementDay) {
-                    val totalDebt = updatedCredit.usedCredit + updatedCredit.pendingInterest
+                    // Book the accrued interest onto the used credit first. It used to be
+                    // put on the invoice but dropped from the debt, so paying the invoice
+                    // pushed the used credit below zero.
+                    val interest = updatedCredit.pendingInterest
+                    if (interest >= 0.01) {
+                        bankDao.insertTransaction(
+                            Transaction(
+                                revolvingCreditAccountId = credit.id,
+                                amount = -interest,
+                                timestamp = nextTime,
+                                description = "Monthly Interest",
+                                type = TransactionType.INTEREST,
+                                status = TransactionStatus.COMPLETED
+                            )
+                        )
+                        updatedCredit = updatedCredit.copy(usedCredit = updatedCredit.usedCredit + interest, pendingInterest = 0.0)
+                    }
+                    val totalDebt = updatedCredit.usedCredit
                     if (totalDebt >= 0.01) {
                         val minPayment = Math.max(credit.minPaymentAmount, totalDebt * credit.minPaymentPercent / 100.0)
                         bankDao.insertInvoice(
@@ -93,7 +130,6 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                                 reminderFee = credit.lateFee
                             )
                         )
-                        updatedCredit = updatedCredit.copy(pendingInterest = 0.0)
                     }
                 }
 
@@ -166,6 +202,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
                             dueDate = nextTime + (7L * 86400000L),
                             status = InvoiceStatus.REMINDER,
                             isReminder = true,
+                            relatedInvoiceId = invoice.id,
                             reminderFee = invoice.reminderFee,
                             overdueInterestRate = invoice.overdueInterestRate
                         )
@@ -353,7 +390,12 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
             accounts.forEach { account ->
                 val rate = if (account.balance >= 0) account.positiveInterestRate else account.overdraftInterestRate
                 val dailyInterest = account.balance * (rate / 100.0 / 365.0)
-                bankDao.updateAccount(account.copy(pendingInterest = Math.max(0.0, account.pendingInterest - dailyInterest)))
+                // A reverted overdraft fee must not keep blocking the next one.
+                val lastFee = account.lastOverdraftFeeAt?.takeIf { it <= prevTime }
+                bankDao.updateAccount(account.copy(
+                    pendingInterest = Math.max(0.0, account.pendingInterest - dailyInterest),
+                    lastOverdraftFeeAt = lastFee
+                ))
             }
 
             val credits = bankDao.getAllRevolvingCreditsSync()

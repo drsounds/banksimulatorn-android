@@ -150,4 +150,23 @@
     <string name="error_rate_range">Enter a rate between 0 and 100</string>
     <string name="error_day_range">Enter a day between 1 and 28</string>
     <string name="error_months_range">Enter between 1 and 600 months</string>
+
+    <!-- Overdraft fees, onboarding without AI, unpaid invoices -->
+    <string name="overdraft_section">Overdraft</string>
+    <string name="overdraft_fee">Overdraft fee</string>
+    <string name="overdraft_fee_help">Charged when the balance is overdrawn. 0 turns the fee off.</string>
+    <string name="overdraft_fee_threshold">Fee threshold</string>
+    <string name="overdraft_fee_threshold_help">How far below zero the balance may go before the fee is charged.</string>
+    <string name="overdraft_fee_cooling_days">Cooling period (days)</string>
+    <string name="overdraft_fee_cooling_days_help">Minimum number of days between two overdraft fees.</string>
+    <string name="welcome_title">Welcome to Banksimulatorn</string>
+    <string name="welcome_body">Start with a set of example accounts and cards. You can open more accounts, credit lines and loans from the start screen.</string>
+    <string name="start_with_default_data">Start with example accounts</string>
+    <string name="unpaid_invoices">Unpaid invoices</string>
+    <string name="no_unpaid_invoices">You have no unpaid invoices.</string>
+    <string name="reminder">Reminder</string>
+    <plurals name="invoice_count">
+        <item quantity="one">%d invoice</item>
+        <item quantity="other">%d invoices</item>
+    </plurals>
 </resources>

@@ -165,7 +165,7 @@ fun AccountSummaryCard(account: Account) {
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        "-" + currencyFormatter.format(account.blockedAmount).replace("€", ""),
+                        currencyFormatter.format(0.0 - account.blockedAmount).replace("€", ""),
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color(0xFFBA1A1A)
                     )

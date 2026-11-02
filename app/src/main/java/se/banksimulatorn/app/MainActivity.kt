@@ -81,7 +81,9 @@ class MainActivity : ComponentActivity() {
                     // Trigger download and readiness check for Gemini Nano.
                     // First-launch onboarding is opened by the dashboard (shouldOnboard);
                     // opening it here as well pushed it twice and crashed on first start.
-                    geminiManager.triggerDownload()
+                    if (FeatureFlags.AI_ENABLED) {
+                        geminiManager.triggerDownload()
+                    }
                 }
                 
                 val popSafe = {
@@ -123,12 +125,14 @@ class MainActivity : ComponentActivity() {
                                     icon = { Icon(Icons.Rounded.Wallet, contentDescription = "Assets") },
                                     label = { Text("Assets") }
                                 )
-                                NavigationBarItem(
-                                    selected = currentDestination == Destination.AIChat,
-                                    onClick = { if (currentDestination != Destination.AIChat) backStack.add(Destination.AIChat) },
-                                    icon = { Icon(Icons.Rounded.AutoAwesome, contentDescription = "AI Sim") },
-                                    label = { Text("AI Sim") }
-                                )
+                                if (FeatureFlags.AI_ENABLED) {
+                                    NavigationBarItem(
+                                        selected = currentDestination == Destination.AIChat,
+                                        onClick = { if (currentDestination != Destination.AIChat) backStack.add(Destination.AIChat) },
+                                        icon = { Icon(Icons.Rounded.AutoAwesome, contentDescription = "AI Sim") },
+                                        label = { Text("AI Sim") }
+                                    )
+                                }
                                 NavigationBarItem(
                                     selected = currentDestination == Destination.Settings,
                                     onClick = { 
@@ -172,8 +176,8 @@ class MainActivity : ComponentActivity() {
                                     onTransactionClick = { id ->
                                         backStack.add(Destination.BlockedTransactionDetail(id))
                                     },
-                                    onInvoiceClick = { id ->
-                                        backStack.add(Destination.InvoicePayment(id))
+                                    onOpenInvoicesClick = {
+                                        backStack.add(Destination.Invoices)
                                     },
                                     onOpenNewClick = { type ->
                                         backStack.add(Destination.CreateAccount(type))
@@ -323,6 +327,18 @@ class MainActivity : ComponentActivity() {
                                 CreateAccountScreen(
                                     viewModel = createAccountViewModel,
                                     initialType = key.initialType,
+                                    onBack = popSafe
+                                )
+                            }
+                            entry<Destination.Invoices> {
+                                val invoiceListViewModel: InvoiceListViewModel = viewModel {
+                                    InvoiceListViewModel(bankDao)
+                                }
+                                InvoiceListScreen(
+                                    viewModel = invoiceListViewModel,
+                                    onInvoiceClick = { id ->
+                                        backStack.add(Destination.InvoicePayment(id))
+                                    },
                                     onBack = popSafe
                                 )
                             }
