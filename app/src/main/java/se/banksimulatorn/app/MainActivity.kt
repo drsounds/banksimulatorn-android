@@ -309,7 +309,12 @@ class MainActivity : ComponentActivity() {
                                 }
                                 AccountSettingsScreen(
                                     viewModel = settingsViewModel,
-                                    onBack = popSafe
+                                    onBack = popSafe,
+                                    onClosed = {
+                                        // Leave both the settings and the now hidden detail screen.
+                                        popSafe()
+                                        popSafe()
+                                    }
                                 )
                             }
                             entry<Destination.Settings> {

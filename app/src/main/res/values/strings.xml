@@ -179,4 +179,9 @@
         <item quantity="one">%d invoice</item>
         <item quantity="other">%d invoices</item>
     </plurals>
+    <string name="account_name">Account name</string>
+    <string name="rename">Rename</string>
+    <string name="close_account">Close account</string>
+    <string name="cancel">Cancel</string>
+    <string name="close_account_confirm">The account will be hidden but kept in the database. You can reopen it from settings.</string>
 </resources>
