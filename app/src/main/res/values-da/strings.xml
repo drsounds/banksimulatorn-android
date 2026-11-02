@@ -20,6 +20,7 @@
     <string name="credit_limit">Kreditgrænse</string>
     <string name="used_credit">Brugt kredit</string>
     <string name="interest">Rente</string>
+    <string name="fee">Gebyr</string>
     <string name="pending_authorizations">Reserverede beløb</string>
     <string name="upcoming_payment">Kommende betaling</string>
     <string name="unpaid">Ubetalt</string>

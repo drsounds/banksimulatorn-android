@@ -20,6 +20,7 @@
     <string name="credit_limit">Kreditgräns</string>
     <string name="used_credit">Använd kredit</string>
     <string name="interest">Ränta</string>
+    <string name="fee">Avgift</string>
     <string name="pending_authorizations">Reserverade belopp</string>
     <string name="upcoming_payment">Kommande betalning</string>
     <string name="unpaid">Obetald</string>
