@@ -166,6 +166,9 @@
     <string name="pay_all">Maksa kaikki</string>
     <string name="pay_all_invoices">Maksa kaikki laskut</string>
     <string name="pay_now">Maksa nyt</string>
+    <string name="voluntary_payment">Tee ylimääräinen maksu</string>
+    <string name="payment_amount">Maksun määrä</string>
+    <string name="credit_balance">Hyvityssaldo</string>
     <plurals name="invoice_count">
         <item quantity="one">%d lasku</item>
         <item quantity="other">%d laskua</item>

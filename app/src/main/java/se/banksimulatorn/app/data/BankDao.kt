@@ -325,6 +325,76 @@ interface BankDao {
         }
     }
 
+    @RoomTransaction
+    suspend fun payLoanVoluntarily(loanId: Int, accountId: Int, amount: Double, timestamp: Long) {
+        if (!amount.isFinite() || amount <= 0.0) throw IllegalArgumentException("Invalid payment amount")
+        val loan = getLoanById(loanId) ?: throw IllegalStateException("Loan not found")
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        if (account.balance < amount) throw IllegalStateException("Insufficient funds on selected account")
+
+        val interestPayment = amount.coerceAtMost(loan.pendingInterest.coerceAtLeast(0.0))
+        val principalPayment = amount - interestPayment
+        insertTransaction(Transaction(
+            accountId = accountId,
+            amount = -amount,
+            timestamp = timestamp,
+            description = "Voluntary payment to loan: ${loan.name}",
+            type = TransactionType.WITHDRAWAL,
+            status = TransactionStatus.COMPLETED
+        ))
+        updateAccount(account.copy(balance = account.balance - amount))
+        updateLoan(loan.copy(
+            balance = VoluntaryPayments.remainingDebtAfterPayment(loan.balance, principalPayment),
+            pendingInterest = loan.pendingInterest - interestPayment
+        ))
+    }
+
+    @RoomTransaction
+    suspend fun payCreditVoluntarily(creditId: Int, accountId: Int, amount: Double, timestamp: Long) {
+        if (!amount.isFinite() || amount <= 0.0) throw IllegalArgumentException("Invalid payment amount")
+        val credit = getRevolvingCreditById(creditId) ?: throw IllegalStateException("Credit account not found")
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        if (account.balance < amount) throw IllegalStateException("Insufficient funds on selected account")
+
+        var remainingPayment = amount
+        val invoices = InvoiceChains.outstanding(getInvoicesForParentSync(creditId, "CREDIT"))
+            .sortedBy { it.issuedDate }
+        for (invoice in invoices) {
+            if (remainingPayment <= 0.0) break
+            val payment = remainingPayment.coerceAtMost(InvoiceChains.remaining(invoice))
+            remainingPayment -= payInvoice(invoice.id, accountId, payment, timestamp)
+        }
+
+        if (remainingPayment > 0.0) {
+            val currentAccount = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+            val currentCredit = getRevolvingCreditById(creditId)
+                ?: throw IllegalStateException("Credit account not found")
+            val interestPayment = remainingPayment.coerceAtMost(currentCredit.pendingInterest.coerceAtLeast(0.0))
+            val principalPayment = remainingPayment - interestPayment
+            insertTransaction(Transaction(
+                accountId = accountId,
+                amount = -remainingPayment,
+                timestamp = timestamp,
+                description = "Voluntary payment to credit card",
+                type = TransactionType.WITHDRAWAL,
+                status = TransactionStatus.COMPLETED
+            ))
+            insertTransaction(Transaction(
+                revolvingCreditAccountId = creditId,
+                amount = remainingPayment,
+                timestamp = timestamp,
+                description = "Voluntary payment received",
+                type = TransactionType.DEPOSIT,
+                status = TransactionStatus.COMPLETED
+            ))
+            updateAccount(currentAccount.copy(balance = currentAccount.balance - remainingPayment))
+            updateRevolvingCredit(currentCredit.copy(
+                usedCredit = VoluntaryPayments.remainingDebtAfterPayment(currentCredit.usedCredit, principalPayment),
+                pendingInterest = currentCredit.pendingInterest - interestPayment
+            ))
+        }
+    }
+
     /**
      * Opens a new account from the "Open new" flow. A non-zero opening balance is
      * booked as an initial deposit so the account history matches its balance.

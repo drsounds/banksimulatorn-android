@@ -9,8 +9,12 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.formatMoney
+import se.banksimulatorn.app.ui.components.VoluntaryPaymentDialog
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -30,7 +35,24 @@ fun LoanDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val loan by viewModel.loan.collectAsState()
+    val paymentAccounts by viewModel.paymentAccounts.collectAsState()
+    var showPaymentDialog by remember { mutableStateOf(false) }
+    var selectedAccountId by remember { mutableStateOf<Int?>(null) }
+    var paymentAmount by remember { mutableStateOf("") }
+    var paymentError by remember { mutableStateOf<String?>(null) }
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+
+    LaunchedEffect(Unit) {
+        viewModel.paymentEvents.collect { event ->
+            when (event) {
+                LoanPaymentEvent.Success -> {
+                    showPaymentDialog = false
+                    paymentAmount = ""
+                }
+                is LoanPaymentEvent.Error -> paymentError = event.message
+            }
+        }
+    }
 
     Column(modifier = modifier) {
         TopAppBar(
@@ -68,16 +90,38 @@ fun LoanDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("9 9999-9999 0", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                            
+
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
-                                Text(currencyFormatter.formatMoney(0.0 - l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                                Text(
+                                    stringResource(if (l.balance < 0.0) R.string.credit_balance else R.string.balance),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    currencyFormatter.formatMoney(0.0 - l.balance).replace("€", ""),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (l.balance < 0.0) Color(0xFF006C4C) else Color(0xFFBA1A1A)
+                                )
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.pending_interest), style = MaterialTheme.typography.bodyLarge)
                                 Text(currencyFormatter.formatMoney(0.0 - l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                         }
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            selectedAccountId = null
+                            paymentAmount = ""
+                            paymentError = null
+                            showPaymentDialog = true
+                        },
+                        enabled = l.balance + l.pendingInterest > 0.0,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.voluntary_payment))
                     }
                 }
 
@@ -105,6 +149,7 @@ fun LoanDetailScreen(
                                 }
                             }
                         }
+
                     }
                 }
 
@@ -130,6 +175,21 @@ fun LoanDetailScreen(
                     )
                 }
             }
+        }
+
+        if (showPaymentDialog) {
+            VoluntaryPaymentDialog(
+                title = stringResource(R.string.voluntary_payment),
+                accounts = paymentAccounts,
+                selectedAccountId = selectedAccountId,
+                amountText = paymentAmount,
+                errorMessage = paymentError,
+                currencyFormatter = currencyFormatter,
+                onAccountSelected = { selectedAccountId = it },
+                onAmountChanged = { paymentAmount = it },
+                onDismiss = { showPaymentDialog = false },
+                onConfirm = { accountId, amount -> viewModel.payVoluntarily(accountId, amount) }
+            )
         }
     }
 }
