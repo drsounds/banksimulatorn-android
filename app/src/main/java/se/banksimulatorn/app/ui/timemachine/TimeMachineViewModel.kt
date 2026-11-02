@@ -158,7 +158,7 @@ class TimeMachineViewModel(private val bankDao: BankDao) : ViewModel() {
             // 3. Loan Invoicing
             val loans = bankDao.getAllLoansSync()
             loans.forEach { loan ->
-                val dailyInterest = loan.balance * (0.05 / 100.0 / 365.0) 
+                val dailyInterest = loan.balance.coerceAtLeast(0.0) * (0.05 / 100.0 / 365.0)
                 val updatedLoan = loan.copy(pendingInterest = loan.pendingInterest + dailyInterest)
                 if (dayOfMonth == loan.invoiceCycleDay) {
                     val interestToCapitalize = updatedLoan.pendingInterest

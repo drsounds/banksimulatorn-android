@@ -29,6 +29,7 @@ import se.banksimulatorn.app.data.InvoiceStatus
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import se.banksimulatorn.app.data.formatMoney
+import se.banksimulatorn.app.ui.components.VoluntaryPaymentDialog
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,6 +55,10 @@ fun CreditDetailScreen(
     var showPayAllDialog by remember { mutableStateOf(false) }
     var selectedAccountId by remember { mutableStateOf<Int?>(null) }
     var payAllError by remember { mutableStateOf<String?>(null) }
+    var showVoluntaryPaymentDialog by remember { mutableStateOf(false) }
+    var selectedPaymentAccountId by remember { mutableStateOf<Int?>(null) }
+    var paymentAmount by remember { mutableStateOf("") }
+    var paymentError by remember { mutableStateOf<String?>(null) }
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
     val outstandingInvoices = InvoiceChains.outstanding(invoices)
     val visibleInvoices = InvoiceChains.forCreditDetails(invoices, showPaidInvoices)
@@ -64,6 +69,18 @@ fun CreditDetailScreen(
             when (event) {
                 PayAllInvoicesEvent.Success -> showPayAllDialog = false
                 is PayAllInvoicesEvent.Error -> payAllError = event.message
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.paymentEvents.collect { event ->
+            when (event) {
+                CreditPaymentEvent.Success -> {
+                    showVoluntaryPaymentDialog = false
+                    paymentAmount = ""
+                }
+                is CreditPaymentEvent.Error -> paymentError = event.message
             }
         }
     }
@@ -136,9 +153,9 @@ fun CreditDetailScreen(
                             InfoRow(stringResource(R.string.credit_limit), currencyFormatter.formatMoney(acc.creditLimit).replace("€", ""))
                             if (acc.usedCredit != 0.0) {
                                InfoRow(
-                                   stringResource(R.string.used_credit),
+                                   stringResource(if (acc.usedCredit < 0.0) R.string.credit_balance else R.string.used_credit),
                                    currencyFormatter.formatMoney(0.0 - acc.usedCredit).replace("€", ""),
-                                   color = Color(0xFFBA1A1A)
+                                   color = if (acc.usedCredit < 0.0) Color(0xFF006C4C) else Color(0xFFBA1A1A)
                                )
                             }
                             if (acc.pendingInterest != 0.0) {
@@ -155,6 +172,21 @@ fun CreditDetailScreen(
                             InfoRow(stringResource(R.string.available_amount), currencyFormatter.formatMoney(available).replace("€", ""), fontWeight = FontWeight.Bold)
 
                         }
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            selectedPaymentAccountId = null
+                            paymentAmount = ""
+                            paymentError = null
+                            showVoluntaryPaymentDialog = true
+                        },
+                        enabled = acc.usedCredit + acc.pendingInterest > 0.0,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.voluntary_payment))
                     }
                 }
 
@@ -235,6 +267,21 @@ fun CreditDetailScreen(
             onConfirm = {
                 selectedAccountId?.let { viewModel.payAllInvoices(it, outstandingInvoices.map(Invoice::id)) }
             }
+        )
+    }
+
+    if (showVoluntaryPaymentDialog) {
+        VoluntaryPaymentDialog(
+            title = stringResource(R.string.voluntary_payment),
+            accounts = paymentAccounts,
+            selectedAccountId = selectedPaymentAccountId,
+            amountText = paymentAmount,
+            errorMessage = paymentError,
+            currencyFormatter = currencyFormatter,
+            onAccountSelected = { selectedPaymentAccountId = it },
+            onAmountChanged = { paymentAmount = it },
+            onDismiss = { showVoluntaryPaymentDialog = false },
+            onConfirm = { accountId, amount -> viewModel.payVoluntarily(accountId, amount) }
         )
     }
 }

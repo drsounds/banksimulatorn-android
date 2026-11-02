@@ -172,6 +172,9 @@
     <string name="pay_all">Betala alla</string>
     <string name="pay_all_invoices">Betala alla fakturor</string>
     <string name="pay_now">Betala nu</string>
+    <string name="voluntary_payment">Gör en extra betalning</string>
+    <string name="payment_amount">Betalningsbelopp</string>
+    <string name="credit_balance">Tillgodohavande</string>
     <plurals name="invoice_count">
         <item quantity="one">%d faktura</item>
         <item quantity="other">%d fakturor</item>

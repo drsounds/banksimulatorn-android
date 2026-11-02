@@ -56,6 +56,9 @@ class CreditDetailViewModel(
     private val _payAllEvents = MutableSharedFlow<PayAllInvoicesEvent>()
     val payAllEvents = _payAllEvents.asSharedFlow()
 
+    private val _paymentEvents = MutableSharedFlow<CreditPaymentEvent>()
+    val paymentEvents = _paymentEvents.asSharedFlow()
+
     val transactions: StateFlow<List<Transaction>> = bankDao.getTransactionsForRevolvingCredit(revolvingAccountId)
         .stateIn(
             scope = viewModelScope,
@@ -74,6 +77,24 @@ class CreditDetailViewModel(
             }
         }
     }
+
+    fun payVoluntarily(accountId: Int, amount: Double) {
+        viewModelScope.launch {
+            try {
+                val timestamp = bankDao.getTimeSettings().first()?.virtualCurrentTime
+                    ?: System.currentTimeMillis()
+                bankDao.payCreditVoluntarily(revolvingAccountId, accountId, amount, timestamp)
+                _paymentEvents.emit(CreditPaymentEvent.Success)
+            } catch (e: Exception) {
+                _paymentEvents.emit(CreditPaymentEvent.Error(e.message ?: "Unknown error"))
+            }
+        }
+    }
+}
+
+sealed class CreditPaymentEvent {
+    data object Success : CreditPaymentEvent()
+    data class Error(val message: String) : CreditPaymentEvent()
 }
 
 sealed class PayAllInvoicesEvent {

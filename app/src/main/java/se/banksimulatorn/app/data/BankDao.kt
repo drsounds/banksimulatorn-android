@@ -325,6 +325,62 @@ interface BankDao {
         }
     }
 
+    @RoomTransaction
+    suspend fun payLoanVoluntarily(loanId: Int, accountId: Int, amount: Double, timestamp: Long) {
+        if (!amount.isFinite() || amount <= 0.0) throw IllegalArgumentException("Invalid payment amount")
+        val loan = getLoanById(loanId) ?: throw IllegalStateException("Loan not found")
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        if (account.balance < amount) throw IllegalStateException("Insufficient funds on selected account")
+
+        val interestPayment = amount.coerceAtMost(loan.pendingInterest.coerceAtLeast(0.0))
+        val principalPayment = amount - interestPayment
+        insertTransaction(Transaction(
+            accountId = accountId,
+            amount = -amount,
+            timestamp = timestamp,
+            description = "Voluntary payment to loan: ${loan.name}",
+            type = TransactionType.WITHDRAWAL,
+            status = TransactionStatus.COMPLETED
+        ))
+        updateAccount(account.copy(balance = account.balance - amount))
+        updateLoan(loan.copy(
+            balance = VoluntaryPayments.remainingDebtAfterPayment(loan.balance, principalPayment),
+            pendingInterest = loan.pendingInterest - interestPayment
+        ))
+    }
+
+    @RoomTransaction
+    suspend fun payCreditVoluntarily(creditId: Int, accountId: Int, amount: Double, timestamp: Long) {
+        if (!amount.isFinite() || amount <= 0.0) throw IllegalArgumentException("Invalid payment amount")
+        val credit = getRevolvingCreditById(creditId) ?: throw IllegalStateException("Credit account not found")
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        if (account.balance < amount) throw IllegalStateException("Insufficient funds on selected account")
+
+        val interestPayment = amount.coerceAtMost(credit.pendingInterest.coerceAtLeast(0.0))
+        val principalPayment = amount - interestPayment
+        insertTransaction(Transaction(
+            accountId = accountId,
+            amount = -amount,
+            timestamp = timestamp,
+            description = "Voluntary payment to credit card",
+            type = TransactionType.WITHDRAWAL,
+            status = TransactionStatus.COMPLETED
+        ))
+        insertTransaction(Transaction(
+            revolvingCreditAccountId = creditId,
+            amount = amount,
+            timestamp = timestamp,
+            description = "Voluntary payment received",
+            type = TransactionType.DEPOSIT,
+            status = TransactionStatus.COMPLETED
+        ))
+        updateAccount(account.copy(balance = account.balance - amount))
+        updateRevolvingCredit(credit.copy(
+            usedCredit = VoluntaryPayments.remainingDebtAfterPayment(credit.usedCredit, principalPayment),
+            pendingInterest = credit.pendingInterest - interestPayment
+        ))
+    }
+
     /**
      * Opens a new account from the "Open new" flow. A non-zero opening balance is
      * booked as an initial deposit so the account history matches its balance.

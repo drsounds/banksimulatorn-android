@@ -172,6 +172,9 @@
     <string name="pay_all">Pay all</string>
     <string name="pay_all_invoices">Pay all invoices</string>
     <string name="pay_now">Pay now</string>
+    <string name="voluntary_payment">Make a voluntary payment</string>
+    <string name="payment_amount">Payment amount</string>
+    <string name="credit_balance">Credit balance</string>
     <plurals name="invoice_count">
         <item quantity="one">%d invoice</item>
         <item quantity="other">%d invoices</item>
