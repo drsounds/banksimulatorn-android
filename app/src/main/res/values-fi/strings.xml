@@ -111,4 +111,37 @@
     <string name="due_days">Maksuaika (päivää)</string>
     <string name="late_fee">Viivästysmaksu</string>
     <string name="collection_fee">Perintämaksu</string>
+
+    <!-- Open new account / credit / loan -->
+    <string name="open_new">Avaa uusi</string>
+    <string name="field_name">Nimi</string>
+    <string name="field_account_number_optional">Tilinumero (valinnainen)</string>
+    <string name="account_number_hint">Jätä tyhjäksi, niin numero luodaan</string>
+    <string name="field_opening_balance">Alkusaldo</string>
+    <string name="field_interest_rate">Korko (%)</string>
+    <string name="account_type">Tilityyppi</string>
+    <string name="field_credit_limit">Luottoraja</string>
+    <string name="field_statement_day">Laskutuspäivä (1–28)</string>
+    <string name="issue_credit_card">Myönnä luottokortti</string>
+    <string name="issue_credit_card_hint">Voit simuloida ostoksia uudella luotolla</string>
+    <string name="field_loan_amount">Lainan määrä</string>
+    <string name="loan_type">Lainatyyppi</string>
+    <string name="loan_type_personal">Kulutusluotto</string>
+    <string name="loan_type_car">Autolaina</string>
+    <string name="field_repayment_months">Laina-aika (kuukautta)</string>
+    <string name="field_monthly_fee">Kuukausimaksu</string>
+    <string name="field_invoice_day">Laskutuspäivä (1–28)</string>
+    <string name="loan_payout_to">Maksa laina tilille</string>
+    <string name="loan_no_payout">Älä maksa</string>
+    <string name="loan_monthly_amortization">Lyhennys kuukaudessa: %1$s</string>
+    <string name="open_account_button">Avaa tili</string>
+    <string name="open_credit_button">Avaa luotto</string>
+    <string name="open_loan_button">Ota laina</string>
+    <string name="error_required">Pakollinen</string>
+    <string name="error_invalid_number">Anna kelvollinen luku</string>
+    <string name="error_must_be_positive">Täytyy olla suurempi kuin 0</string>
+    <string name="error_must_not_be_negative">Ei voi olla negatiivinen</string>
+    <string name="error_rate_range">Anna korko väliltä 0–100</string>
+    <string name="error_day_range">Anna päivä väliltä 1–28</string>
+    <string name="error_months_range">Anna 1–600 kuukautta</string>
 </resources>

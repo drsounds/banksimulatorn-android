@@ -3,10 +3,13 @@ package se.banksimulatorn.app.ui.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.*
@@ -22,38 +25,99 @@ class CreateAccountViewModel(private val bankDao: BankDao) : ViewModel() {
     val allRevolvingCredits: StateFlow<List<RevolvingCreditAccount>> = bankDao.getAllRevolvingCredits()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun createBankAccount(name: String, number: String, balance: Double, type: AccountType) {
+    private val _isSaving = MutableStateFlow(false)
+
+    /** True while a create is being written, so the form can't submit twice. */
+    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
+    private fun save(block: suspend () -> Unit) {
+        if (_isSaving.value) return
+        _isSaving.value = true
         viewModelScope.launch {
-            bankDao.insertAccount(Account(name = name, accountNumber = number, balance = balance, type = type))
-            _uiEvent.emit(CreateUiEvent.Success)
+            try {
+                block()
+                _uiEvent.emit(CreateUiEvent.Success)
+            } finally {
+                _isSaving.value = false
+            }
         }
     }
 
-    fun createLoan(name: String, balance: Double, fee: Double, cycleDay: Int) {
-        viewModelScope.launch {
-            bankDao.insertLoan(Loan(
-                name = name, 
-                type = "Loan", 
-                balance = balance, 
-                pendingInterest = 0.0, 
-                nextPaymentAmount = balance / 12, 
-                nextPaymentDate = "2026-06-30",
-                loanFee = fee,
-                invoiceCycleDay = cycleDay
-            ))
-            _uiEvent.emit(CreateUiEvent.Success)
+    /** Simulated "now": the time machine's clock if it has been moved, else the real clock. */
+    private suspend fun simulatedNow(): Long =
+        bankDao.getTimeSettings().first()?.virtualCurrentTime ?: System.currentTimeMillis()
+
+    fun createBankAccount(
+        name: String,
+        number: String,
+        openingBalance: Double,
+        type: AccountType,
+        interestRate: Double
+    ) {
+        save {
+            val now = simulatedNow()
+            bankDao.openAccount(
+                Account(
+                    name = name.trim(),
+                    accountNumber = number.trim().ifEmpty { generateAccountNumber() },
+                    balance = openingBalance,
+                    type = type,
+                    positiveInterestRate = interestRate
+                ),
+                openedAt = now
+            )
         }
     }
 
-    fun createRevolvingCredit(name: String, limit: Double, rate: Double, cycleDay: Int) {
-        viewModelScope.launch {
-            bankDao.insertRevolvingCredit(RevolvingCreditAccount(
-                name = name,
-                creditLimit = limit,
-                interestRate = rate,
-                invoiceCycleDay = cycleDay
-            ))
-            _uiEvent.emit(CreateUiEvent.Success)
+    fun createLoan(
+        name: String,
+        loanType: String,
+        amount: Double,
+        months: Int,
+        monthlyFee: Double,
+        cycleDay: Int,
+        payoutAccountId: Int?
+    ) {
+        save {
+            val now = simulatedNow()
+            bankDao.openLoan(
+                Loan(
+                    name = name.trim(),
+                    type = loanType,
+                    balance = amount,
+                    pendingInterest = 0.0,
+                    nextPaymentAmount = amount / months,
+                    nextPaymentDate = nextDateOnDay(now, cycleDay),
+                    loanFee = monthlyFee,
+                    invoiceCycleDay = cycleDay
+                ),
+                payoutAccountId = payoutAccountId,
+                openedAt = now
+            )
+        }
+    }
+
+    fun createRevolvingCredit(
+        name: String,
+        limit: Double,
+        rate: Double,
+        statementDay: Int,
+        issueCard: Boolean
+    ) {
+        save {
+            val trimmedName = name.trim()
+            bankDao.openRevolvingCredit(
+                RevolvingCreditAccount(
+                    name = trimmedName,
+                    creditLimit = limit,
+                    interestRate = rate,
+                    statementDay = statementDay,
+                    invoiceCycleDay = statementDay
+                ),
+                card = if (issueCard) {
+                    CreditCard(name = trimmedName, cardNumber = generateCardNumber(), type = CardType.CREDIT)
+                } else null
+            )
         }
     }
 

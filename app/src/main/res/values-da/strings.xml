@@ -111,4 +111,37 @@
     <string name="due_days">Betalingsfrist (dage)</string>
     <string name="late_fee">Rykkergebyr</string>
     <string name="collection_fee">Inkassogebyr</string>
+
+    <!-- Open new account / credit / loan -->
+    <string name="open_new">Åbn ny</string>
+    <string name="field_name">Navn</string>
+    <string name="field_account_number_optional">Kontonummer (valgfrit)</string>
+    <string name="account_number_hint">Lad feltet stå tomt for at oprette et</string>
+    <string name="field_opening_balance">Startsaldo</string>
+    <string name="field_interest_rate">Rente (%)</string>
+    <string name="account_type">Kontotype</string>
+    <string name="field_credit_limit">Kreditgrænse</string>
+    <string name="field_statement_day">Opgørelsesdag (1–28)</string>
+    <string name="issue_credit_card">Udsted et kreditkort</string>
+    <string name="issue_credit_card_hint">Lader dig simulere køb på den nye kredit</string>
+    <string name="field_loan_amount">Lånebeløb</string>
+    <string name="loan_type">Lånetype</string>
+    <string name="loan_type_personal">Forbrugslån</string>
+    <string name="loan_type_car">Billån</string>
+    <string name="field_repayment_months">Tilbagebetalingstid (måneder)</string>
+    <string name="field_monthly_fee">Månedligt gebyr</string>
+    <string name="field_invoice_day">Fakturadag (1–28)</string>
+    <string name="loan_payout_to">Udbetal lånet til</string>
+    <string name="loan_no_payout">Udbetal ikke</string>
+    <string name="loan_monthly_amortization">Afdrag pr. måned: %1$s</string>
+    <string name="open_account_button">Åbn konto</string>
+    <string name="open_credit_button">Åbn kredit</string>
+    <string name="open_loan_button">Optag lån</string>
+    <string name="error_required">Påkrævet</string>
+    <string name="error_invalid_number">Indtast et gyldigt tal</string>
+    <string name="error_must_be_positive">Skal være større end 0</string>
+    <string name="error_must_not_be_negative">Må ikke være negativt</string>
+    <string name="error_rate_range">Indtast en rente mellem 0 og 100</string>
+    <string name="error_day_range">Indtast en dag mellem 1 og 28</string>
+    <string name="error_months_range">Indtast mellem 1 og 600 måneder</string>
 </resources>

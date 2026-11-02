@@ -117,4 +117,37 @@
     <string name="due_days">Betalningsvillkor (dagar)</string>
     <string name="late_fee">Förseningsavgift</string>
     <string name="collection_fee">Inkassoavgift</string>
+
+    <!-- Open new account / credit / loan -->
+    <string name="open_new">Öppna ny</string>
+    <string name="field_name">Namn</string>
+    <string name="field_account_number_optional">Kontonummer (valfritt)</string>
+    <string name="account_number_hint">Lämna tomt så skapas ett</string>
+    <string name="field_opening_balance">Startsaldo</string>
+    <string name="field_interest_rate">Ränta (%)</string>
+    <string name="account_type">Kontotyp</string>
+    <string name="field_credit_limit">Kreditgräns</string>
+    <string name="field_statement_day">Fakturadag (1–28)</string>
+    <string name="issue_credit_card">Utfärda ett kreditkort</string>
+    <string name="issue_credit_card_hint">Gör att du kan simulera köp på den nya krediten</string>
+    <string name="field_loan_amount">Lånebelopp</string>
+    <string name="loan_type">Lånetyp</string>
+    <string name="loan_type_personal">Privatlån</string>
+    <string name="loan_type_car">Billån</string>
+    <string name="field_repayment_months">Återbetalningstid (månader)</string>
+    <string name="field_monthly_fee">Månadsavgift</string>
+    <string name="field_invoice_day">Aviseringsdag (1–28)</string>
+    <string name="loan_payout_to">Betala ut lånet till</string>
+    <string name="loan_no_payout">Betala inte ut</string>
+    <string name="loan_monthly_amortization">Amortering per månad: %1$s</string>
+    <string name="open_account_button">Öppna konto</string>
+    <string name="open_credit_button">Öppna kredit</string>
+    <string name="open_loan_button">Ta lån</string>
+    <string name="error_required">Obligatoriskt</string>
+    <string name="error_invalid_number">Ange ett giltigt tal</string>
+    <string name="error_must_be_positive">Måste vara större än 0</string>
+    <string name="error_must_not_be_negative">Kan inte vara negativt</string>
+    <string name="error_rate_range">Ange en ränta mellan 0 och 100</string>
+    <string name="error_day_range">Ange en dag mellan 1 och 28</string>
+    <string name="error_months_range">Ange mellan 1 och 600 månader</string>
 </resources>
