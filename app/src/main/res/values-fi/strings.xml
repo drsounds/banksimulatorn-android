@@ -173,4 +173,9 @@
         <item quantity="one">%d lasku</item>
         <item quantity="other">%d laskua</item>
     </plurals>
+    <string name="account_name">Tilin nimi</string>
+    <string name="rename">Nimeä uudelleen</string>
+    <string name="close_account">Sulje tili</string>
+    <string name="cancel">Peruuta</string>
+    <string name="close_account_confirm">Tili piilotetaan, mutta se säilyy tietokannassa. Voit avata sen uudelleen asetuksista.</string>
 </resources>

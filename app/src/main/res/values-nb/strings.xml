@@ -173,4 +173,9 @@
         <item quantity="one">%d faktura</item>
         <item quantity="other">%d fakturaer</item>
     </plurals>
+    <string name="account_name">Kontonavn</string>
+    <string name="rename">Endre navn</string>
+    <string name="close_account">Lukk konto</string>
+    <string name="cancel">Avbryt</string>
+    <string name="close_account_confirm">Kontoen skjules, men lagres i databasen. Du kan åpne den igjen fra innstillinger.</string>
 </resources>

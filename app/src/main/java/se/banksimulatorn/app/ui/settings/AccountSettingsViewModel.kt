@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.BankDao
@@ -44,6 +45,44 @@ class AccountSettingsViewModel(
                 AccountSettingsType.CREDIT_CARD -> _revolvingAccount.value = bankDao.getRevolvingCreditById(id)
                 AccountSettingsType.LOAN -> _loan.value = bankDao.getLoanById(id)
             }
+        }
+    }
+
+    fun rename(newName: String) {
+        val name = newName.trim()
+        if (name.isEmpty()) return
+        viewModelScope.launch {
+            when (type) {
+                AccountSettingsType.ACCOUNT -> _account.value?.let {
+                    val updated = it.copy(name = name)
+                    bankDao.updateAccount(updated)
+                    _account.value = updated
+                }
+                AccountSettingsType.CREDIT_CARD -> _revolvingAccount.value?.let {
+                    val updated = it.copy(name = name)
+                    bankDao.updateRevolvingCredit(updated)
+                    _revolvingAccount.value = updated
+                }
+                AccountSettingsType.LOAN -> _loan.value?.let {
+                    val updated = it.copy(name = name)
+                    bankDao.updateLoan(updated)
+                    _loan.value = updated
+                }
+            }
+            _uiEvent.emit(AccountSettingsUiEvent.Success)
+        }
+    }
+
+    /** Flags the account as closed (kept in the database, but hidden). */
+    fun close() {
+        viewModelScope.launch {
+            val now = bankDao.getTimeSettings().first()?.virtualCurrentTime ?: System.currentTimeMillis()
+            when (type) {
+                AccountSettingsType.ACCOUNT -> _account.value?.let { bankDao.updateAccount(it.copy(closedAt = now)) }
+                AccountSettingsType.CREDIT_CARD -> _revolvingAccount.value?.let { bankDao.updateRevolvingCredit(it.copy(closedAt = now)) }
+                AccountSettingsType.LOAN -> _loan.value?.let { bankDao.updateLoan(it.copy(closedAt = now)) }
+            }
+            _uiEvent.emit(AccountSettingsUiEvent.Closed)
         }
     }
 
@@ -104,5 +143,6 @@ class AccountSettingsViewModel(
 
 sealed class AccountSettingsUiEvent {
     data object Success : AccountSettingsUiEvent()
+    data object Closed : AccountSettingsUiEvent()
     data class Error(val message: String) : AccountSettingsUiEvent()
 }

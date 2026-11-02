@@ -20,21 +20,43 @@ import se.banksimulatorn.app.R
 fun AccountSettingsScreen(
     viewModel: AccountSettingsViewModel,
     onBack: () -> Unit,
+    onClosed: () -> Unit = onBack,
     modifier: Modifier = Modifier
 ) {
     val account by viewModel.account.collectAsState()
     val revolvingAccount by viewModel.revolvingAccount.collectAsState()
     val loan by viewModel.loan.collectAsState()
     
+    var showCloseDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
-            if (event is AccountSettingsUiEvent.Success) {
-                snackbarHostState.showSnackbar(context.getString(R.string.settings_saved))
+            when (event) {
+                is AccountSettingsUiEvent.Success ->
+                    snackbarHostState.showSnackbar(context.getString(R.string.settings_saved))
+                is AccountSettingsUiEvent.Closed -> onClosed()
+                else -> {}
             }
         }
+    }
+
+    if (showCloseDialog) {
+        AlertDialog(
+            onDismissRequest = { showCloseDialog = false },
+            title = { Text(stringResource(R.string.close_account)) },
+            text = { Text(stringResource(R.string.close_account_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCloseDialog = false
+                    viewModel.close()
+                }) { Text(stringResource(R.string.close_account)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCloseDialog = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        )
     }
 
     Column(modifier = modifier) {
@@ -55,6 +77,23 @@ fun AccountSettingsScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val currentName = account?.name ?: revolvingAccount?.name ?: loan?.name
+                currentName?.let { name ->
+                    var newName by remember(name) { mutableStateOf(name) }
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text(stringResource(R.string.account_name)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Button(
+                        onClick = { viewModel.rename(newName) },
+                        enabled = newName.isNotBlank() && newName.trim() != name,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(stringResource(R.string.rename)) }
+                }
+
                 account?.let { acc ->
                     AccountSettingsForm(
                         initialPositive = acc.positiveInterestRate,
@@ -84,6 +123,14 @@ fun AccountSettingsScreen(
                         initialFee = l.loanFee,
                         onSave = { day, fee -> viewModel.saveLoanSettings(day, fee) }
                     )
+                }
+
+                if (account != null || revolvingAccount != null || loan != null) {
+                    OutlinedButton(
+                        onClick = { showCloseDialog = true },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(stringResource(R.string.close_account)) }
                 }
             }
             

@@ -179,4 +179,9 @@
         <item quantity="one">%d faktura</item>
         <item quantity="other">%d fakturor</item>
     </plurals>
+    <string name="account_name">Kontonamn</string>
+    <string name="rename">Byt namn</string>
+    <string name="close_account">Stäng konto</string>
+    <string name="cancel">Avbryt</string>
+    <string name="close_account_confirm">Kontot döljs men sparas i databasen. Du kan öppna det igen från inställningarna.</string>
 </resources>
