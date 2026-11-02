@@ -356,29 +356,43 @@ interface BankDao {
         val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
         if (account.balance < amount) throw IllegalStateException("Insufficient funds on selected account")
 
-        val interestPayment = amount.coerceAtMost(credit.pendingInterest.coerceAtLeast(0.0))
-        val principalPayment = amount - interestPayment
-        insertTransaction(Transaction(
-            accountId = accountId,
-            amount = -amount,
-            timestamp = timestamp,
-            description = "Voluntary payment to credit card",
-            type = TransactionType.WITHDRAWAL,
-            status = TransactionStatus.COMPLETED
-        ))
-        insertTransaction(Transaction(
-            revolvingCreditAccountId = creditId,
-            amount = amount,
-            timestamp = timestamp,
-            description = "Voluntary payment received",
-            type = TransactionType.DEPOSIT,
-            status = TransactionStatus.COMPLETED
-        ))
-        updateAccount(account.copy(balance = account.balance - amount))
-        updateRevolvingCredit(credit.copy(
-            usedCredit = VoluntaryPayments.remainingDebtAfterPayment(credit.usedCredit, principalPayment),
-            pendingInterest = credit.pendingInterest - interestPayment
-        ))
+        var remainingPayment = amount
+        val invoices = InvoiceChains.outstanding(getInvoicesForParentSync(creditId, "CREDIT"))
+            .sortedBy { it.issuedDate }
+        for (invoice in invoices) {
+            if (remainingPayment <= 0.0) break
+            val payment = remainingPayment.coerceAtMost(InvoiceChains.remaining(invoice))
+            remainingPayment -= payInvoice(invoice.id, accountId, payment, timestamp)
+        }
+
+        if (remainingPayment > 0.0) {
+            val currentAccount = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+            val currentCredit = getRevolvingCreditById(creditId)
+                ?: throw IllegalStateException("Credit account not found")
+            val interestPayment = remainingPayment.coerceAtMost(currentCredit.pendingInterest.coerceAtLeast(0.0))
+            val principalPayment = remainingPayment - interestPayment
+            insertTransaction(Transaction(
+                accountId = accountId,
+                amount = -remainingPayment,
+                timestamp = timestamp,
+                description = "Voluntary payment to credit card",
+                type = TransactionType.WITHDRAWAL,
+                status = TransactionStatus.COMPLETED
+            ))
+            insertTransaction(Transaction(
+                revolvingCreditAccountId = creditId,
+                amount = remainingPayment,
+                timestamp = timestamp,
+                description = "Voluntary payment received",
+                type = TransactionType.DEPOSIT,
+                status = TransactionStatus.COMPLETED
+            ))
+            updateAccount(currentAccount.copy(balance = currentAccount.balance - remainingPayment))
+            updateRevolvingCredit(currentCredit.copy(
+                usedCredit = VoluntaryPayments.remainingDebtAfterPayment(currentCredit.usedCredit, principalPayment),
+                pendingInterest = currentCredit.pendingInterest - interestPayment
+            ))
+        }
     }
 
     /**
