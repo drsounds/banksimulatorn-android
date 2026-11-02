@@ -166,6 +166,12 @@
     <string name="unpaid_invoices">Obetalda fakturor</string>
     <string name="no_unpaid_invoices">Du har inga obetalda fakturor.</string>
     <string name="reminder">Påminnelse</string>
+    <string name="show_paid_invoices">Visa betalda fakturor</string>
+    <string name="hide_paid_invoices">Dölj betalda fakturor</string>
+    <string name="total_outstanding">Totalt utestående</string>
+    <string name="pay_all">Betala alla</string>
+    <string name="pay_all_invoices">Betala alla fakturor</string>
+    <string name="pay_now">Betala nu</string>
     <plurals name="invoice_count">
         <item quantity="one">%d faktura</item>
         <item quantity="other">%d fakturor</item>

@@ -56,6 +56,9 @@ object InvoiceChains {
         return open.filter { it.id !in superseded }
     }
 
+    fun forCreditDetails(invoices: List<Invoice>, showPaid: Boolean): List<Invoice> =
+        if (showPaid) invoices else invoices.filter { it.status != InvoiceStatus.PAID }
+
     /** What is left to pay on [invoice], never negative. */
     fun remaining(invoice: Invoice): Double = (invoice.amount - invoice.paidAmount).coerceAtLeast(0.0)
 }

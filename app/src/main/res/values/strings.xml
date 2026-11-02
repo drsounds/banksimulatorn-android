@@ -166,6 +166,12 @@
     <string name="unpaid_invoices">Unpaid invoices</string>
     <string name="no_unpaid_invoices">You have no unpaid invoices.</string>
     <string name="reminder">Reminder</string>
+    <string name="show_paid_invoices">Show paid invoices</string>
+    <string name="hide_paid_invoices">Hide paid invoices</string>
+    <string name="total_outstanding">Total outstanding</string>
+    <string name="pay_all">Pay all</string>
+    <string name="pay_all_invoices">Pay all invoices</string>
+    <string name="pay_now">Pay now</string>
     <plurals name="invoice_count">
         <item quantity="one">%d invoice</item>
         <item quantity="other">%d invoices</item>
