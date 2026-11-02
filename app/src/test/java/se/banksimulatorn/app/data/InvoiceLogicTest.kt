@@ -84,4 +84,14 @@ class InvoiceLogicTest {
 
         assertEquals(listOf(2, 3), InvoiceChains.outstanding(listOf(original, reminder, other, paid)).map { it.id })
     }
+
+    @Test
+    fun creditDetailsHidePaidInvoicesUnlessRequested() {
+        val unpaid = invoice(1)
+        val paid = invoice(2, status = InvoiceStatus.PAID)
+        val invoices = listOf(unpaid, paid)
+
+        assertEquals(listOf(unpaid), InvoiceChains.forCreditDetails(invoices, showPaid = false))
+        assertEquals(invoices, InvoiceChains.forCreditDetails(invoices, showPaid = true))
+    }
 }

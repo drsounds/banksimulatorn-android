@@ -160,6 +160,12 @@
     <string name="unpaid_invoices">Ubetalte fakturaer</string>
     <string name="no_unpaid_invoices">Du har ingen ubetalte fakturaer.</string>
     <string name="reminder">Rykker</string>
+    <string name="show_paid_invoices">Vis betalte fakturaer</string>
+    <string name="hide_paid_invoices">Skjul betalte fakturaer</string>
+    <string name="total_outstanding">Samlet udestående</string>
+    <string name="pay_all">Betal alle</string>
+    <string name="pay_all_invoices">Betal alle fakturaer</string>
+    <string name="pay_now">Betal nu</string>
     <plurals name="invoice_count">
         <item quantity="one">%d faktura</item>
         <item quantity="other">%d fakturaer</item>

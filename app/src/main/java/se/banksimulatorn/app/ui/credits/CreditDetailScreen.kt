@@ -9,8 +9,12 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
+import se.banksimulatorn.app.data.Account
+import se.banksimulatorn.app.data.Invoice
+import se.banksimulatorn.app.data.InvoiceChains
+import se.banksimulatorn.app.data.InvoiceStatus
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import java.text.NumberFormat
@@ -40,9 +48,27 @@ fun CreditDetailScreen(
     val revolvingAccount by viewModel.revolvingAccount.collectAsState()
     val transactions by viewModel.transactions.collectAsState()
     val invoices by viewModel.invoices.collectAsState()
+    val paymentAccounts by viewModel.paymentAccounts.collectAsState()
+    var showPaidInvoices by remember { mutableStateOf(false) }
+    var showPayAllDialog by remember { mutableStateOf(false) }
+    var selectedAccountId by remember { mutableStateOf<Int?>(null) }
+    var payAllError by remember { mutableStateOf<String?>(null) }
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val outstandingInvoices = InvoiceChains.outstanding(invoices)
+    val visibleInvoices = InvoiceChains.forCreditDetails(invoices, showPaidInvoices)
+    val outstandingTotal = outstandingInvoices.sumOf { InvoiceChains.remaining(it) }
 
-    Column(modifier = modifier) {
+    LaunchedEffect(Unit) {
+        viewModel.payAllEvents.collect { event ->
+            when (event) {
+                PayAllInvoicesEvent.Success -> showPayAllDialog = false
+                is PayAllInvoicesEvent.Error -> payAllError = event.message
+            }
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+      Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = {
                 Column {
@@ -70,6 +96,35 @@ fun CreditDetailScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                if (acc.isBnplMode) {
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(stringResource(R.string.total_outstanding), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    currencyFormatter.format(outstandingTotal).replace("€", ""),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Button(
+                                    onClick = {
+                                        selectedAccountId = null
+                                        payAllError = null
+                                        showPayAllDialog = true
+                                    },
+                                    enabled = outstandingTotal > 0.0,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(R.string.pay_all))
+                                }
+                            }
+                        }
+                    }
+                }
+
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -118,12 +173,27 @@ fun CreditDetailScreen(
                     }
                 }
 
-                if (invoices.isNotEmpty()) {
+                if (visibleInvoices.isNotEmpty() || invoices.any { it.status == InvoiceStatus.PAID }) {
                     item {
                         Text(stringResource(R.string.invoices), style = MaterialTheme.typography.labelLarge)
                     }
-                    items(invoices) { invoice ->
-                        InvoiceDetailItem(invoice = invoice, onPay = { onInvoiceClick(invoice.id) })
+                    if (invoices.any { it.status == InvoiceStatus.PAID }) {
+                        item {
+                            TextButton(onClick = { showPaidInvoices = !showPaidInvoices }) {
+                                Text(
+                                    stringResource(
+                                        if (showPaidInvoices) R.string.hide_paid_invoices else R.string.show_paid_invoices
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    items(visibleInvoices) { invoice ->
+                        InvoiceDetailItem(
+                            invoice = invoice,
+                            isBnplMode = acc.isBnplMode,
+                            onPay = { onInvoiceClick(invoice.id) }
+                        )
                     }
                 }
 
@@ -148,12 +218,30 @@ fun CreditDetailScreen(
                 }
             }
         }
+      }
+
+    }
+
+    if (showPayAllDialog) {
+        PayAllInvoicesDialog(
+            accounts = paymentAccounts,
+            selectedAccountId = selectedAccountId,
+            total = outstandingTotal,
+            currencyFormatter = currencyFormatter,
+            errorMessage = payAllError,
+            onAccountSelected = { selectedAccountId = it },
+            onDismiss = { showPayAllDialog = false },
+            onConfirm = {
+                selectedAccountId?.let { viewModel.payAllInvoices(it, outstandingInvoices.map(Invoice::id)) }
+            }
+        )
     }
 }
 
 @Composable
 fun InvoiceDetailItem(
     invoice: se.banksimulatorn.app.data.Invoice,
+    isBnplMode: Boolean = false,
     onPay: () -> Unit
 ) {
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
@@ -191,11 +279,69 @@ fun InvoiceDetailItem(
             }
             if (invoice.status != se.banksimulatorn.app.data.InvoiceStatus.PAID) {
                 Button(onClick = onPay) {
-                    Text(stringResource(R.string.pay))
+                    Text(stringResource(if (isBnplMode) R.string.pay_now else R.string.pay))
                 }
             }
         }
     }
+}
+
+@Composable
+private fun PayAllInvoicesDialog(
+    accounts: List<Account>,
+    selectedAccountId: Int?,
+    total: Double,
+    currencyFormatter: NumberFormat,
+    errorMessage: String?,
+    onAccountSelected: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pay_all_invoices)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.select_payment_account))
+                errorMessage?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+                accounts.forEach { account ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedAccountId == account.id,
+                            onClick = { onAccountSelected(account.id) },
+                            enabled = account.balance >= total
+                        )
+                        Column {
+                            Text(account.name)
+                            Text(
+                                currencyFormatter.format(account.balance).replace("€", ""),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = selectedAccountId != null &&
+                    accounts.any { it.id == selectedAccountId && it.balance >= total }
+            ) {
+                Text(stringResource(R.string.pay_all))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.back))
+            }
+        }
+    )
 }
 
 @Composable

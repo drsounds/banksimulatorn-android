@@ -311,6 +311,20 @@ interface BankDao {
         return payment
     }
 
+    @RoomTransaction
+    suspend fun payInvoices(invoiceIds: List<Int>, accountId: Int, timestamp: Long): Double {
+        val invoices = invoiceIds.distinct().map { id ->
+            getInvoiceById(id) ?: throw IllegalStateException("Invoice not found")
+        }.filter { it.status != InvoiceStatus.PAID }
+        val total = invoices.sumOf { InvoiceChains.remaining(it) }
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        if (account.balance < total) throw IllegalStateException("Insufficient funds on selected account")
+
+        return invoices.sumOf { invoice ->
+            payInvoice(invoice.id, accountId, InvoiceChains.remaining(invoice), timestamp)
+        }
+    }
+
     /**
      * Opens a new account from the "Open new" flow. A non-zero opening balance is
      * booked as an initial deposit so the account history matches its balance.
