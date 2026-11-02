@@ -152,7 +152,7 @@ fun AccountSummaryCard(account: Account) {
             )
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
                 Text(currencyFormatter.format(account.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge)
             }
             if (account.blockedAmount != 0.0) {
