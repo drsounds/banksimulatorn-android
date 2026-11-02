@@ -30,6 +30,7 @@ import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.Transaction
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -162,7 +163,7 @@ fun AccountList(
                     trailingContent = { 
                         val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
                         Text(
-                            currencyFormatter.format(account.balance).replace("€", ""),
+                            currencyFormatter.formatMoney(account.balance).replace("€", ""),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
@@ -231,7 +232,7 @@ fun TransactionItemDesignDesign(transaction: Transaction) {
         },
         trailingContent = {
             Text(
-                text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.format(transaction.amount).replace("€", ""),
+                text = (if (transaction.amount > 0) "+" else "") + currencyFormatter.formatMoney(transaction.amount).replace("€", ""),
                 color = if (transaction.amount > 0) 
                     MaterialTheme.colorScheme.primary 
                 else 

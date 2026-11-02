@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.InvoiceChains
 import se.banksimulatorn.app.data.InvoicePayments
+import se.banksimulatorn.app.data.formatMoney
 import se.banksimulatorn.app.ui.create.CreateFormValidation
 import java.text.NumberFormat
 import java.util.Locale
@@ -73,10 +74,10 @@ fun InvoicePaymentScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.invoice_details), style = MaterialTheme.typography.titleLarge)
-                        DetailRow("Total Amount", currencyFormatter.format(inv.amount).replace("€", ""))
-                        DetailRow("Paid Amount", currencyFormatter.format(inv.paidAmount).replace("€", ""))
-                        DetailRow("Remaining", currencyFormatter.format(InvoiceChains.remaining(inv)).replace("€", ""))
-                        DetailRow(stringResource(R.string.minimum_amount), currencyFormatter.format(inv.minimumAmount).replace("€", ""))
+                        DetailRow("Total Amount", currencyFormatter.formatMoney(inv.amount).replace("€", ""))
+                        DetailRow("Paid Amount", currencyFormatter.formatMoney(inv.paidAmount).replace("€", ""))
+                        DetailRow("Remaining", currencyFormatter.formatMoney(InvoiceChains.remaining(inv)).replace("€", ""))
+                        DetailRow(stringResource(R.string.minimum_amount), currencyFormatter.formatMoney(inv.minimumAmount).replace("€", ""))
                         DetailRow("Status", inv.status.name)
                     }
                 }
@@ -105,7 +106,7 @@ fun InvoicePaymentScreen(
                             Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Column {
                                     Text(acc.name, fontWeight = FontWeight.Bold)
-                                    Text(currencyFormatter.format(acc.balance).replace("€", ""), style = MaterialTheme.typography.bodySmall)
+                                    Text(currencyFormatter.formatMoney(acc.balance).replace("€", ""), style = MaterialTheme.typography.bodySmall)
                                 }
                                 RadioButton(selected = selectedAccountId == acc.id, onClick = { selectedAccountId = acc.id })
                             }
@@ -120,7 +121,7 @@ fun InvoicePaymentScreen(
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = MaterialTheme.shapes.extraLarge
                 ) {
-                    Text(stringResource(R.string.pay) + " " + currencyFormatter.format(finalAmount).replace("€", ""))
+                    Text(stringResource(R.string.pay) + " " + currencyFormatter.formatMoney(finalAmount).replace("€", ""))
                 }
             }
         }

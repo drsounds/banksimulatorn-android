@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import se.banksimulatorn.app.R
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,26 +78,26 @@ fun CreditDetailScreen(
                         shape = MaterialTheme.shapes.medium
                     ) {
                         Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            InfoRow(stringResource(R.string.credit_limit), currencyFormatter.format(acc.creditLimit).replace("€", ""))
+                            InfoRow(stringResource(R.string.credit_limit), currencyFormatter.formatMoney(acc.creditLimit).replace("€", ""))
                             if (acc.usedCredit != 0.0) {
                                InfoRow(
                                    stringResource(R.string.used_credit),
-                                   currencyFormatter.format(0.0 - acc.usedCredit).replace("€", ""),
+                                   currencyFormatter.formatMoney(0.0 - acc.usedCredit).replace("€", ""),
                                    color = Color(0xFFBA1A1A)
                                )
                             }
                             if (acc.pendingInterest != 0.0) {
                                 InfoRow(
                                     stringResource(R.string.interest),
-                                    currencyFormatter.format(0.0 - acc.pendingInterest).replace("€", "")
+                                    currencyFormatter.formatMoney(0.0 - acc.pendingInterest).replace("€", "")
                                 )
                             }
                             if (acc.pendingAuthorizations != 0.0) {
-                                InfoRow(stringResource(R.string.pending_authorizations), currencyFormatter.format(0.0 - acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
+                                InfoRow(stringResource(R.string.pending_authorizations), currencyFormatter.formatMoney(0.0 - acc.pendingAuthorizations).replace("€", ""), color = Color(0xFFB06000))
                             }
                             val available =
                                 acc.creditLimit - acc.usedCredit - acc.pendingAuthorizations - acc.pendingInterest
-                            InfoRow(stringResource(R.string.available_amount), currencyFormatter.format(available).replace("€", ""), fontWeight = FontWeight.Bold)
+                            InfoRow(stringResource(R.string.available_amount), currencyFormatter.formatMoney(available).replace("€", ""), fontWeight = FontWeight.Bold)
 
                         }
                     }
@@ -180,7 +181,7 @@ fun InvoiceDetailItem(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    text = currencyFormatter.format(invoice.amount).replace("€", ""),
+                    text = currencyFormatter.formatMoney(invoice.amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = if (invoice.status == se.banksimulatorn.app.data.InvoiceStatus.PAID) Color.Gray else Color.Unspecified
                 )
@@ -236,7 +237,7 @@ fun CreditTransactionItem(
             ) {
                 Text(transaction.merchant ?: transaction.description, style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    currencyFormatter.format(transaction.amount).replace("€", ""),
+                    currencyFormatter.formatMoney(transaction.amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = if (transaction.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
                 )

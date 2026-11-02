@@ -31,6 +31,7 @@ import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Invoice
 import se.banksimulatorn.app.data.InvoiceChains
 import se.banksimulatorn.app.data.InvoiceStatus
+import se.banksimulatorn.app.data.formatMoney
 import se.banksimulatorn.app.navigation.CreateType
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -220,7 +221,7 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                             style = MaterialTheme.typography.bodyMedium, color = Color(0xFF2E4053)
                         )
                         Text(
-                            currencyFormatter.format(account.balance - account.blockedAmount).replace("€", ""),
+                            currencyFormatter.formatMoney(account.balance - account.blockedAmount).replace("€", ""),
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (account.balance - account.blockedAmount > 0) Color(0xFF006C4C) else Color(0xFFBA1A1A)
                         )
@@ -235,7 +236,7 @@ fun AccountsUnifiedCard(accounts: List<Account>, onAccountClick: (Int) -> Unit) 
                             color = Color.Gray
                         )
                         Text(
-                            currencyFormatter.format(account.balance).replace("€", ""),
+                            currencyFormatter.formatMoney(account.balance).replace("€", ""),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
@@ -270,7 +271,7 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                     style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
                 )
                 Text(
-                    currencyFormatter.format(0.0 - loan.balance).replace("€", ""),
+                    currencyFormatter.formatMoney(0.0 - loan.balance).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFBA1A1A)
                 )
@@ -289,7 +290,7 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium, color = Color.Gray
                 )
                 Text(
-                    stringResource(R.string.upcoming_payment) + ": " + currencyFormatter.format(loan.nextPaymentAmount).replace("€", ""),
+                    stringResource(R.string.upcoming_payment) + ": " + currencyFormatter.formatMoney(loan.nextPaymentAmount).replace("€", ""),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -315,7 +316,7 @@ fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
             ) {
                 Text(card.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
                 Text(
-                    currencyFormatter.format(0.0 - card.usedCredit).replace("€", ""),
+                    currencyFormatter.formatMoney(0.0 - card.usedCredit).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFBA1A1A)
                 )
@@ -326,7 +327,7 @@ fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
             ) {
                 Text(stringResource(R.string.credits), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 Text(
-                    currencyFormatter.format(card.creditLimit).replace("€", ""),
+                    currencyFormatter.formatMoney(card.creditLimit).replace("€", ""),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -364,7 +365,7 @@ fun OpenInvoicesSummaryCard(invoices: List<Invoice>, onClick: () -> Unit) {
                 )
             }
             Text(
-                currencyFormatter.format(total).replace("€", ""),
+                currencyFormatter.formatMoney(total).replace("€", ""),
                 style = MaterialTheme.typography.titleLarge,
                 color = if (anyOverdue) MaterialTheme.colorScheme.error else Color.Unspecified
             )
@@ -416,7 +417,7 @@ fun InvoiceItemDesign(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = currencyFormatter.format(InvoiceChains.remaining(invoice)).replace("€", ""),
+                    text = currencyFormatter.formatMoney(InvoiceChains.remaining(invoice)).replace("€", ""),
                     style = MaterialTheme.typography.titleLarge,
                     color = if (invoice.status == InvoiceStatus.OVERDUE || invoice.status == InvoiceStatus.COLLECTION) MaterialTheme.colorScheme.error else Color.Unspecified
                 )
@@ -454,7 +455,7 @@ fun TransactionItemDesign(
             ) {
                 Text(merchant, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal)
                 Text(
-                    currencyFormatter.format(amount).replace("€", ""),
+                    currencyFormatter.formatMoney(amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = if (amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
                 )

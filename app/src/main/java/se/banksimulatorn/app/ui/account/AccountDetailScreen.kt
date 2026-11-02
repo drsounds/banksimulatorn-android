@@ -23,6 +23,7 @@ import se.banksimulatorn.app.data.Account
 import se.banksimulatorn.app.data.AccountType
 import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
+import se.banksimulatorn.app.data.formatMoney
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -153,7 +154,7 @@ fun AccountSummaryCard(account: Account) {
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
-                Text(currencyFormatter.format(account.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge)
+                Text(currencyFormatter.formatMoney(account.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge)
             }
             if (account.blockedAmount != 0.0) {
                 Row(
@@ -165,7 +166,7 @@ fun AccountSummaryCard(account: Account) {
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        currencyFormatter.format(0.0 - account.blockedAmount).replace("€", ""),
+                        currencyFormatter.formatMoney(0.0 - account.blockedAmount).replace("€", ""),
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color(0xFFBA1A1A)
                     )
@@ -174,7 +175,7 @@ fun AccountSummaryCard(account: Account) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.available_amount), style = MaterialTheme.typography.bodyLarge)
                 val available = account.balance - account.blockedAmount
-                Text(currencyFormatter.format(available).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFF006C4C))
+                Text(currencyFormatter.formatMoney(available).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFF006C4C))
             }
         }
     }
@@ -205,7 +206,7 @@ fun AccountTransactionCard(transaction: Transaction) {
                     style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Normal
                 )
                 Text(
-                    currencyFormatter.format(transaction.amount).replace("€", ""),
+                    currencyFormatter.formatMoney(transaction.amount).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = if (transaction.amount < 0) Color(0xFFBA1A1A) else Color(0xFF006C4C)
                 )

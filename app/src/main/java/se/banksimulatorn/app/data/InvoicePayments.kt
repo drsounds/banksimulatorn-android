@@ -26,5 +26,6 @@ object InvoicePayments {
      * The text pre-filled in the payment field. Double.toString() gives values like
      * "1234.5600000000002" or "1.2E7", which the field then parsed into a different amount.
      */
-    fun formatAmountInput(amount: Double): String = String.format(Locale.ROOT, "%.2f", amount)
+    fun formatAmountInput(amount: Double): String =
+        String.format(Locale.ROOT, "%.2f", if (amount == 0.0) 0.0 else amount)
 }
