@@ -111,4 +111,37 @@
     <string name="due_days">Betalingsfrist (dager)</string>
     <string name="late_fee">Purregebyr</string>
     <string name="collection_fee">Inkassogebyr</string>
+
+    <!-- Open new account / credit / loan -->
+    <string name="open_new">Åpne ny</string>
+    <string name="field_name">Navn</string>
+    <string name="field_account_number_optional">Kontonummer (valgfritt)</string>
+    <string name="account_number_hint">La feltet stå tomt for å opprette et</string>
+    <string name="field_opening_balance">Startsaldo</string>
+    <string name="field_interest_rate">Rente (%)</string>
+    <string name="account_type">Kontotype</string>
+    <string name="field_credit_limit">Kredittgrense</string>
+    <string name="field_statement_day">Fakturadag (1–28)</string>
+    <string name="issue_credit_card">Utsted et kredittkort</string>
+    <string name="issue_credit_card_hint">Lar deg simulere kjøp på den nye kreditten</string>
+    <string name="field_loan_amount">Lånebeløp</string>
+    <string name="loan_type">Lånetype</string>
+    <string name="loan_type_personal">Forbrukslån</string>
+    <string name="loan_type_car">Billån</string>
+    <string name="field_repayment_months">Nedbetalingstid (måneder)</string>
+    <string name="field_monthly_fee">Månedsgebyr</string>
+    <string name="field_invoice_day">Fakturadag (1–28)</string>
+    <string name="loan_payout_to">Utbetal lånet til</string>
+    <string name="loan_no_payout">Ikke utbetal</string>
+    <string name="loan_monthly_amortization">Avdrag per måned: %1$s</string>
+    <string name="open_account_button">Åpne konto</string>
+    <string name="open_credit_button">Åpne kreditt</string>
+    <string name="open_loan_button">Ta opp lån</string>
+    <string name="error_required">Påkrevd</string>
+    <string name="error_invalid_number">Skriv inn et gyldig tall</string>
+    <string name="error_must_be_positive">Må være større enn 0</string>
+    <string name="error_must_not_be_negative">Kan ikke være negativt</string>
+    <string name="error_rate_range">Skriv inn en rente mellom 0 og 100</string>
+    <string name="error_day_range">Skriv inn en dag mellom 1 og 28</string>
+    <string name="error_months_range">Skriv inn mellom 1 og 600 måneder</string>
 </resources>

@@ -24,7 +24,7 @@ interface BankDao {
     fun getClosedAccounts(): Flow<List<Account>>
 
     @Insert
-    suspend fun insertAccount(account: Account)
+    suspend fun insertAccount(account: Account): Long
 
     @Update
     suspend fun updateAccount(account: Account)
@@ -46,7 +46,7 @@ interface BankDao {
     fun getClosedRevolvingCredits(): Flow<List<RevolvingCreditAccount>>
 
     @Insert
-    suspend fun insertRevolvingCredit(account: RevolvingCreditAccount)
+    suspend fun insertRevolvingCredit(account: RevolvingCreditAccount): Long
 
     @Update
     suspend fun updateRevolvingCredit(account: RevolvingCreditAccount)
@@ -71,7 +71,7 @@ interface BankDao {
     fun getClosedLoans(): Flow<List<Loan>>
 
     @Insert
-    suspend fun insertLoan(loan: Loan)
+    suspend fun insertLoan(loan: Loan): Long
 
     @Update
     suspend fun updateLoan(loan: Loan)
@@ -236,6 +236,61 @@ interface BankDao {
         updateRevolvingCredit(revolving.copy(
             pendingAuthorizations = revolving.pendingAuthorizations - absAmount
         ))
+    }
+
+    /**
+     * Opens a new account from the "Open new" flow. A non-zero opening balance is
+     * booked as an initial deposit so the account history matches its balance.
+     */
+    @RoomTransaction
+    suspend fun openAccount(account: Account, openedAt: Long): Int {
+        val id = insertAccount(account).toInt()
+        if (account.balance != 0.0) {
+            insertTransaction(Transaction(
+                accountId = id,
+                amount = account.balance,
+                timestamp = openedAt,
+                description = "Initial Deposit",
+                type = TransactionType.DEPOSIT,
+                status = TransactionStatus.COMPLETED
+            ))
+        }
+        return id
+    }
+
+    /**
+     * Opens a new credit line and, when [card] is given, issues a credit card
+     * linked to it so purchases can be simulated straight away.
+     */
+    @RoomTransaction
+    suspend fun openRevolvingCredit(credit: RevolvingCreditAccount, card: CreditCard?): Int {
+        val id = insertRevolvingCredit(credit).toInt()
+        if (card != null) {
+            insertCreditCard(card.copy(linkedAccountId = null, linkedCreditAccountId = id, type = CardType.CREDIT))
+        }
+        return id
+    }
+
+    /**
+     * Takes out a new loan. When [payoutAccountId] points at an open account, the
+     * loan amount is paid out to it as a deposit, like a real bank would.
+     */
+    @RoomTransaction
+    suspend fun openLoan(loan: Loan, payoutAccountId: Int?, openedAt: Long): Int {
+        val id = insertLoan(loan).toInt()
+        val payoutAccount = payoutAccountId?.let { getAccountById(it) }
+        if (payoutAccount != null && loan.balance > 0.0) {
+            updateAccountBalance(payoutAccount.id, loan.balance)
+            insertTransaction(Transaction(
+                accountId = payoutAccount.id,
+                amount = loan.balance,
+                timestamp = openedAt,
+                description = "Loan payout: ${loan.name}",
+                type = TransactionType.DEPOSIT,
+                status = TransactionStatus.COMPLETED
+            ))
+        }
+        return id
     }
 
     // Time Settings

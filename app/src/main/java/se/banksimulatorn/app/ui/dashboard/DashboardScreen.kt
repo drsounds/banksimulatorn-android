@@ -28,6 +28,7 @@ import se.banksimulatorn.app.data.TransactionStatus
 import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Invoice
 import se.banksimulatorn.app.data.InvoiceStatus
+import se.banksimulatorn.app.navigation.CreateType
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,6 +46,7 @@ fun DashboardScreen(
     onCreditClick: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
     onInvoiceClick: (Int) -> Unit,
+    onOpenNewClick: (CreateType) -> Unit,
     onOnboardRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -71,6 +73,9 @@ fun DashboardScreen(
                 )
             },
             actions = {
+                IconButton(onClick = { onOpenNewClick(CreateType.ACCOUNT) }) {
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.open_new))
+                }
                 IconButton(onClick = onHistoryClick) {
                     Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.transaction_history))
                 }
@@ -104,10 +109,9 @@ fun DashboardScreen(
             }
 
             item {
-                Text(
-                    stringResource(R.string.accounts),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                SectionHeader(
+                    title = stringResource(R.string.accounts),
+                    onOpenNew = { onOpenNewClick(CreateType.ACCOUNT) }
                 )
                 AccountsUnifiedCard(accounts = accounts, onAccountClick = onAccountClick)
             }
@@ -130,10 +134,9 @@ fun DashboardScreen(
                 }
             }
             item {
-                Text(
-                    stringResource(R.string.loans),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                SectionHeader(
+                    title = stringResource(R.string.loans),
+                    onOpenNew = { onOpenNewClick(CreateType.LOAN) }
                 )
             }
             items(loans) { loan ->
@@ -141,10 +144,9 @@ fun DashboardScreen(
             }
 
             item {
-                Text(
-                    stringResource(R.string.credits),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                SectionHeader(
+                    title = stringResource(R.string.credits),
+                    onOpenNew = { onOpenNewClick(CreateType.CREDIT) }
                 )
             }
             items(revolvingCredits) { card ->
@@ -171,6 +173,26 @@ fun DashboardScreen(
             item {
                 Spacer(modifier = Modifier.height(100.dp))
             }
+        }
+    }
+}
+
+/** A dashboard section title with a shortcut to open a new product of that kind. */
+@Composable
+fun SectionHeader(title: String, onOpenNew: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        TextButton(onClick = onOpenNew) {
+            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.open_new), modifier = Modifier.padding(start = 4.dp))
         }
     }
 }
@@ -265,8 +287,12 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    if (loan.type == "Mortgage loan") stringResource(R.string.mortgage_loan)
-                    else loan.type,
+                    when (loan.type) {
+                        "Mortgage loan" -> stringResource(R.string.mortgage_loan)
+                        "Loan" -> stringResource(R.string.loan_type_personal)
+                        "Car loan" -> stringResource(R.string.loan_type_car)
+                        else -> loan.type
+                    },
                     style = MaterialTheme.typography.bodyMedium, color = Color.Gray
                 )
                 Text(

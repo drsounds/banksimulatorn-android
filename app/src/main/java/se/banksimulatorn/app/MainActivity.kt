@@ -35,6 +35,7 @@ import se.banksimulatorn.app.ai.GeminiManager
 import se.banksimulatorn.app.data.BankDatabase
 import se.banksimulatorn.app.navigation.AccountSettingsType
 import se.banksimulatorn.app.navigation.Destination
+import se.banksimulatorn.app.navigation.CreateType
 import se.banksimulatorn.app.ui.dashboard.DashboardScreen
 import se.banksimulatorn.app.ui.dashboard.DashboardViewModel
 import se.banksimulatorn.app.ui.transactions.TransactionScreen
@@ -174,6 +175,9 @@ class MainActivity : ComponentActivity() {
                                     onInvoiceClick = { id ->
                                         backStack.add(Destination.InvoicePayment(id))
                                     },
+                                    onOpenNewClick = { type ->
+                                        backStack.add(Destination.CreateAccount(type))
+                                    },
                                     onOnboardRequest = {
                                         if (Destination.Onboarding !in backStack) {
                                             backStack.add(Destination.Onboarding)
@@ -185,14 +189,14 @@ class MainActivity : ComponentActivity() {
                                 val budgetViewModel: BudgetViewModel = viewModel { BudgetViewModel(bankDao) }
                                 BudgetScreen(
                                     viewModel = budgetViewModel,
-                                    onCreateBudget = { backStack.add(Destination.CreateAccount) }
+                                    onCreateBudget = { backStack.add(Destination.CreateAccount(CreateType.BUDGET)) }
                                 )
                             }
                             entry<Destination.Assets> {
                                 val assetViewModel: AssetViewModel = viewModel { AssetViewModel(bankDao) }
                                 AssetScreen(
                                     viewModel = assetViewModel,
-                                    onCreateAsset = { backStack.add(Destination.CreateAccount) }
+                                    onCreateAsset = { backStack.add(Destination.CreateAccount(CreateType.ASSET)) }
                                 )
                             }
                             entry<Destination.AIChat> {
@@ -312,12 +316,13 @@ class MainActivity : ComponentActivity() {
                                     viewModel = globalSettingsViewModel
                                 )
                             }
-                            entry<Destination.CreateAccount> {
+                            entry<Destination.CreateAccount> { key ->
                                 val createAccountViewModel: CreateAccountViewModel = viewModel {
                                     CreateAccountViewModel(bankDao)
                                 }
                                 CreateAccountScreen(
                                     viewModel = createAccountViewModel,
+                                    initialType = key.initialType,
                                     onBack = popSafe
                                 )
                             }

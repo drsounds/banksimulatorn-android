@@ -117,4 +117,37 @@
     <string name="due_days">Due Days</string>
     <string name="late_fee">Late Fee</string>
     <string name="collection_fee">Collection Fee</string>
+
+    <!-- Open new account / credit / loan -->
+    <string name="open_new">Open new</string>
+    <string name="field_name">Name</string>
+    <string name="field_account_number_optional">Account number (optional)</string>
+    <string name="account_number_hint">Leave empty to generate one</string>
+    <string name="field_opening_balance">Opening balance</string>
+    <string name="field_interest_rate">Interest rate (%)</string>
+    <string name="account_type">Account type</string>
+    <string name="field_credit_limit">Credit limit</string>
+    <string name="field_statement_day">Statement day (1–28)</string>
+    <string name="issue_credit_card">Issue a credit card</string>
+    <string name="issue_credit_card_hint">Lets you simulate purchases on the new credit line</string>
+    <string name="field_loan_amount">Loan amount</string>
+    <string name="loan_type">Loan type</string>
+    <string name="loan_type_personal">Personal loan</string>
+    <string name="loan_type_car">Car loan</string>
+    <string name="field_repayment_months">Repayment period (months)</string>
+    <string name="field_monthly_fee">Monthly fee</string>
+    <string name="field_invoice_day">Invoice day (1–28)</string>
+    <string name="loan_payout_to">Pay out the loan to</string>
+    <string name="loan_no_payout">Don\'t pay out</string>
+    <string name="loan_monthly_amortization">Monthly amortization: %1$s</string>
+    <string name="open_account_button">Open account</string>
+    <string name="open_credit_button">Open credit line</string>
+    <string name="open_loan_button">Take out loan</string>
+    <string name="error_required">Required</string>
+    <string name="error_invalid_number">Enter a valid number</string>
+    <string name="error_must_be_positive">Must be greater than 0</string>
+    <string name="error_must_not_be_negative">Can\'t be negative</string>
+    <string name="error_rate_range">Enter a rate between 0 and 100</string>
+    <string name="error_day_range">Enter a day between 1 and 28</string>
+    <string name="error_months_range">Enter between 1 and 600 months</string>
 </resources>

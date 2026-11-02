@@ -32,7 +32,7 @@ sealed interface Destination : NavKey {
     data object Settings : Destination
 
     @Serializable
-    data object CreateAccount : Destination
+    data class CreateAccount(val initialType: CreateType = CreateType.ACCOUNT) : Destination
 
     @Serializable
     data object History : Destination
@@ -55,4 +55,9 @@ sealed interface Destination : NavKey {
 
 enum class AccountSettingsType {
     ACCOUNT, CREDIT_CARD, LOAN
+}
+
+/** Which product the "Open new" screen starts on. */
+enum class CreateType {
+    ACCOUNT, CREDIT, LOAN, ASSET, BUDGET
 }
