@@ -38,6 +38,9 @@ sealed interface Destination : NavKey {
     data object History : Destination
 
     @Serializable
+    data object Invoices : Destination
+
+    @Serializable
     data class InvoicePayment(val invoiceId: Int) : Destination
 
     @Serializable

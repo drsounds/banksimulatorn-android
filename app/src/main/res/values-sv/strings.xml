@@ -150,4 +150,23 @@
     <string name="error_rate_range">Ange en ränta mellan 0 och 100</string>
     <string name="error_day_range">Ange en dag mellan 1 och 28</string>
     <string name="error_months_range">Ange mellan 1 och 600 månader</string>
+
+    <!-- Overdraft fees, onboarding without AI, unpaid invoices -->
+    <string name="overdraft_section">Övertrassering</string>
+    <string name="overdraft_fee">Övertrasseringsavgift</string>
+    <string name="overdraft_fee_help">Dras när kontot är övertrasserat. 0 stänger av avgiften.</string>
+    <string name="overdraft_fee_threshold">Gräns för avgift</string>
+    <string name="overdraft_fee_threshold_help">Hur långt under noll saldot får gå innan avgiften dras.</string>
+    <string name="overdraft_fee_cooling_days">Karenstid (dagar)</string>
+    <string name="overdraft_fee_cooling_days_help">Minsta antal dagar mellan två övertrasseringsavgifter.</string>
+    <string name="welcome_title">Välkommen till Banksimulatorn</string>
+    <string name="welcome_body">Börja med några exempelkonton och kort. Du kan öppna fler konton, krediter och lån från startskärmen.</string>
+    <string name="start_with_default_data">Börja med exempelkonton</string>
+    <string name="unpaid_invoices">Obetalda fakturor</string>
+    <string name="no_unpaid_invoices">Du har inga obetalda fakturor.</string>
+    <string name="reminder">Påminnelse</string>
+    <plurals name="invoice_count">
+        <item quantity="one">%d faktura</item>
+        <item quantity="other">%d fakturor</item>
+    </plurals>
 </resources>

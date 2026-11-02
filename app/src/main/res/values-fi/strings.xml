@@ -144,4 +144,23 @@
     <string name="error_rate_range">Anna korko väliltä 0–100</string>
     <string name="error_day_range">Anna päivä väliltä 1–28</string>
     <string name="error_months_range">Anna 1–600 kuukautta</string>
+
+    <!-- Overdraft fees, onboarding without AI, unpaid invoices -->
+    <string name="overdraft_section">Tilinylitys</string>
+    <string name="overdraft_fee">Ylitysmaksu</string>
+    <string name="overdraft_fee_help">Veloitetaan, kun tili on ylitetty. 0 poistaa maksun käytöstä.</string>
+    <string name="overdraft_fee_threshold">Maksun raja</string>
+    <string name="overdraft_fee_threshold_help">Kuinka paljon saldo saa olla miinuksella ennen kuin maksu veloitetaan.</string>
+    <string name="overdraft_fee_cooling_days">Karenssiaika (päivää)</string>
+    <string name="overdraft_fee_cooling_days_help">Vähimmäismäärä päiviä kahden ylitysmaksun välillä.</string>
+    <string name="welcome_title">Tervetuloa Banksimulatoriin</string>
+    <string name="welcome_body">Aloita muutamalla esimerkkitilillä ja -kortilla. Voit avata lisää tilejä, luottoja ja lainoja aloitusnäytöltä.</string>
+    <string name="start_with_default_data">Aloita esimerkkitileillä</string>
+    <string name="unpaid_invoices">Maksamattomat laskut</string>
+    <string name="no_unpaid_invoices">Sinulla ei ole maksamattomia laskuja.</string>
+    <string name="reminder">Muistutus</string>
+    <plurals name="invoice_count">
+        <item quantity="one">%d lasku</item>
+        <item quantity="other">%d laskua</item>
+    </plurals>
 </resources>

@@ -60,7 +60,12 @@ fun AccountSettingsScreen(
                         initialPositive = acc.positiveInterestRate,
                         initialOverdraft = acc.overdraftInterestRate,
                         initialCapDay = acc.interestCapitalizationDay,
-                        onSave = { pos, over, day -> viewModel.saveAccountSettings(pos, over, day) }
+                        initialOverdraftFee = acc.overdraftFee,
+                        initialOverdraftFeeThreshold = acc.overdraftFeeThreshold,
+                        initialOverdraftFeeCoolingDays = acc.overdraftFeeCoolingDays,
+                        onSave = { pos, over, day, fee, threshold, cooling ->
+                            viewModel.saveAccountSettings(pos, over, day, fee, threshold, cooling)
+                        }
                     )
                 }
                 
@@ -95,23 +100,22 @@ fun AccountSettingsForm(
     initialPositive: Double,
     initialOverdraft: Double,
     initialCapDay: Int,
-    onSave: (Double, Double, Int) -> Unit
+    initialOverdraftFee: Double,
+    initialOverdraftFeeThreshold: Double,
+    initialOverdraftFeeCoolingDays: Int,
+    onSave: (Double, Double, Int, Double, Double, Int) -> Unit
 ) {
     var positive by remember { mutableStateOf(initialPositive.toString()) }
     var overdraft by remember { mutableStateOf(initialOverdraft.toString()) }
     var capDay by remember { mutableStateOf(initialCapDay.toString()) }
+    var overdraftFee by remember { mutableStateOf(initialOverdraftFee.toString()) }
+    var overdraftThreshold by remember { mutableStateOf(initialOverdraftFeeThreshold.toString()) }
+    var coolingDays by remember { mutableStateOf(initialOverdraftFeeCoolingDays.toString()) }
 
     OutlinedTextField(
         value = positive,
         onValueChange = { positive = it },
         label = { Text(stringResource(R.string.positive_interest_rate)) },
-        modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-    )
-    OutlinedTextField(
-        value = overdraft,
-        onValueChange = { overdraft = it },
-        label = { Text(stringResource(R.string.overdraft_interest_rate)) },
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
     )
@@ -122,12 +126,48 @@ fun AccountSettingsForm(
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
+
+    Text(stringResource(R.string.overdraft_section), style = MaterialTheme.typography.titleMedium)
+    OutlinedTextField(
+        value = overdraft,
+        onValueChange = { overdraft = it },
+        label = { Text(stringResource(R.string.overdraft_interest_rate)) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+    OutlinedTextField(
+        value = overdraftFee,
+        onValueChange = { overdraftFee = it },
+        label = { Text(stringResource(R.string.overdraft_fee)) },
+        supportingText = { Text(stringResource(R.string.overdraft_fee_help)) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+    OutlinedTextField(
+        value = overdraftThreshold,
+        onValueChange = { overdraftThreshold = it },
+        label = { Text(stringResource(R.string.overdraft_fee_threshold)) },
+        supportingText = { Text(stringResource(R.string.overdraft_fee_threshold_help)) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+    OutlinedTextField(
+        value = coolingDays,
+        onValueChange = { coolingDays = it },
+        label = { Text(stringResource(R.string.overdraft_fee_cooling_days)) },
+        supportingText = { Text(stringResource(R.string.overdraft_fee_cooling_days_help)) },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
     Button(
-        onClick = { 
+        onClick = {
             onSave(
-                positive.toDoubleOrNull() ?: 0.0,
-                overdraft.toDoubleOrNull() ?: 0.0,
-                capDay.toIntOrNull() ?: 1
+                positive.toDecimalOrNull() ?: 0.0,
+                overdraft.toDecimalOrNull() ?: 0.0,
+                capDay.trim().toIntOrNull() ?: 1,
+                overdraftFee.toDecimalOrNull() ?: 0.0,
+                overdraftThreshold.toDecimalOrNull() ?: 0.0,
+                coolingDays.trim().toIntOrNull() ?: 0
             )
         },
         modifier = Modifier.fillMaxWidth(),
@@ -136,6 +176,9 @@ fun AccountSettingsForm(
         Text(stringResource(R.string.save_settings))
     }
 }
+
+/** Accepts both "1,5" and "1.5", as Swedish keyboards type a comma. */
+private fun String.toDecimalOrNull(): Double? = trim().replace(',', '.').toDoubleOrNull()
 
 @Composable
 fun CreditSettingsForm(

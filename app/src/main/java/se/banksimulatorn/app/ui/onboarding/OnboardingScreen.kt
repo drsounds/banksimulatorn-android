@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import se.banksimulatorn.app.FeatureFlags
 import se.banksimulatorn.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,7 +63,7 @@ fun OnboardingScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                Icons.Rounded.AutoAwesome,
+                if (FeatureFlags.AI_ENABLED) Icons.Rounded.AutoAwesome else Icons.Rounded.AccountBalance,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.primary
@@ -69,90 +71,113 @@ fun OnboardingScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            Text(
-                stringResource(R.string.tell_me_life),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                "Gemini will generate your initial assets, accounts, and budget based on your story.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            // --- AI Model Status Indicator ---
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isAiReady) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.surfaceVariant
+            if (!FeatureFlags.AI_ENABLED) {
+                // AI onboarding is hidden: offer the default accounts only.
+                Text(
+                    stringResource(R.string.welcome_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Text(
+                    stringResource(R.string.welcome_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+                Button(
+                    onClick = { viewModel.skipOnboarding() },
+                    enabled = !isLoading,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.extraLarge
                 ) {
-                    if (!isAiReady) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(Icons.Rounded.Download, contentDescription = null, tint = Color(0xFF2E7D32))
+                    Text(stringResource(R.string.start_with_default_data))
+                }
+            } else {
+                Text(
+                    stringResource(R.string.tell_me_life),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    "Gemini will generate your initial assets, accounts, and budget based on your story.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+
+                // --- AI Model Status Indicator ---
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isAiReady) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (!isAiReady) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Rounded.Download, contentDescription = null, tint = Color(0xFF2E7D32))
+                        }
+                        Text(aiStatus, style = MaterialTheme.typography.labelMedium)
                     }
-                    Text(aiStatus, style = MaterialTheme.typography.labelMedium)
                 }
-            }
 
-            // Example Personas
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SuggestionChip(
-                    onClick = { description = "30 year old nurse living in Stockholm. Has a small car and 5000 SEK in savings." },
-                    label = { Text("Nurse") }
-                )
-                SuggestionChip(
-                    onClick = { description = "22 year old student in Gothenburg. No car, living in a condo. Limited budget." },
-                    label = { Text("Student") }
-                )
-                SuggestionChip(
-                    onClick = { description = "45 year old architect in Malmö. Owns a villa, high income, large mortgage." },
-                    label = { Text("Architect") }
-                )
-            }
-            
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                placeholder = { Text("E.g. I am a 30 year old nurse...") },
-                modifier = Modifier.fillMaxWidth().height(150.dp),
-                shape = MaterialTheme.shapes.medium
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Button(
-                onClick = { viewModel.generateLife(description) },
-                enabled = description.isNotBlank() && !isLoading && isAiReady,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = MaterialTheme.shapes.extraLarge
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.generate_simulator))
+                // Example Personas
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SuggestionChip(
+                        onClick = { description = "30 year old nurse living in Stockholm. Has a small car and 5000 SEK in savings." },
+                        label = { Text("Nurse") }
+                    )
+                    SuggestionChip(
+                        onClick = { description = "22 year old student in Gothenburg. No car, living in a condo. Limited budget." },
+                        label = { Text("Student") }
+                    )
+                    SuggestionChip(
+                        onClick = { description = "45 year old architect in Malmö. Owns a villa, high income, large mortgage." },
+                        label = { Text("Architect") }
+                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholder = { Text("E.g. I am a 30 year old nurse...") },
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    shape = MaterialTheme.shapes.medium
+                )
 
-            TextButton(
-                onClick = { viewModel.skipOnboarding() },
-                enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Skip AI and use default SEK data")
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { viewModel.generateLife(description) },
+                    enabled = description.isNotBlank() && !isLoading && isAiReady,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.extraLarge
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text(stringResource(R.string.generate_simulator))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextButton(
+                    onClick = { viewModel.skipOnboarding() },
+                    enabled = !isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Skip AI and use default SEK data")
+                }
             }
         }
     }

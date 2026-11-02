@@ -47,13 +47,23 @@ class AccountSettingsViewModel(
         }
     }
 
-    fun saveAccountSettings(positiveRate: Double, overdraftRate: Double, capitalizationDay: Int) {
+    fun saveAccountSettings(
+        positiveRate: Double,
+        overdraftRate: Double,
+        capitalizationDay: Int,
+        overdraftFee: Double,
+        overdraftFeeThreshold: Double,
+        overdraftFeeCoolingDays: Int
+    ) {
         viewModelScope.launch {
             _account.value?.let { acc ->
                 val updated = acc.copy(
                     positiveInterestRate = positiveRate,
                     overdraftInterestRate = overdraftRate,
-                    interestCapitalizationDay = capitalizationDay
+                    interestCapitalizationDay = capitalizationDay,
+                    overdraftFee = overdraftFee.coerceAtLeast(0.0),
+                    overdraftFeeThreshold = overdraftFeeThreshold.coerceAtLeast(0.0),
+                    overdraftFeeCoolingDays = overdraftFeeCoolingDays.coerceAtLeast(0)
                 )
                 bankDao.updateAccount(updated)
                 _account.value = updated

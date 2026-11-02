@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,6 +29,7 @@ import se.banksimulatorn.app.data.Transaction
 import se.banksimulatorn.app.data.TransactionStatus
 import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Invoice
+import se.banksimulatorn.app.data.InvoiceChains
 import se.banksimulatorn.app.data.InvoiceStatus
 import se.banksimulatorn.app.navigation.CreateType
 import java.text.NumberFormat
@@ -45,7 +48,7 @@ fun DashboardScreen(
     onLoanClick: (Int) -> Unit,
     onCreditClick: (Int) -> Unit,
     onTransactionClick: (Int) -> Unit,
-    onInvoiceClick: (Int) -> Unit,
+    onOpenInvoicesClick: () -> Unit,
     onOpenNewClick: (CreateType) -> Unit,
     onOnboardRequest: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,17 +97,7 @@ fun DashboardScreen(
         ) {
             if (openInvoices.isNotEmpty()) {
                 item {
-                    Text(
-                        stringResource(R.string.open_invoices),
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                items(openInvoices) { invoice ->
-                    InvoiceItemDesign(
-                        invoice = invoice,
-                        onClick = { onInvoiceClick(invoice.id) }
-                    )
+                    OpenInvoicesSummaryCard(invoices = openInvoices, onClick = onOpenInvoicesClick)
                 }
             }
 
@@ -277,7 +270,7 @@ fun LoanCard(loan: Loan, onClick: () -> Unit) {
                     style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053)
                 )
                 Text(
-                    "-" + currencyFormatter.format(loan.balance).replace("€", ""),
+                    currencyFormatter.format(0.0 - loan.balance).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFBA1A1A)
                 )
@@ -322,7 +315,7 @@ fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
             ) {
                 Text(card.name, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF2E4053))
                 Text(
-                    "-" + currencyFormatter.format(card.usedCredit).replace("€", ""),
+                    currencyFormatter.format(0.0 - card.usedCredit).replace("€", ""),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color(0xFFBA1A1A)
                 )
@@ -338,6 +331,48 @@ fun RevolvingCreditItem(card: RevolvingCreditAccount, onClick: () -> Unit) {
                     color = Color.Gray
                 )
             }
+        }
+    }
+}
+
+/** One entry for all unpaid invoices: how many there are and what they add up to. */
+@Composable
+fun OpenInvoicesSummaryCard(invoices: List<Invoice>, onClick: () -> Unit) {
+    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.GERMANY)
+    val total = invoices.sumOf { InvoiceChains.remaining(it) }
+    val anyOverdue = invoices.any {
+        it.status == InvoiceStatus.OVERDUE || it.status == InvoiceStatus.COLLECTION || it.status == InvoiceStatus.REMINDER
+    }
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (anyOverdue) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.unpaid_invoices), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    pluralStringResource(R.plurals.invoice_count, invoices.size, invoices.size),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Text(
+                currencyFormatter.format(total).replace("€", ""),
+                style = MaterialTheme.typography.titleLarge,
+                color = if (anyOverdue) MaterialTheme.colorScheme.error else Color.Unspecified
+            )
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }
@@ -367,7 +402,11 @@ fun InvoiceItemDesign(
         ) {
             Column {
                 Text(
-                    text = if (invoice.parentType == "CREDIT") stringResource(R.string.credits) else invoice.parentType,
+                    text = when {
+                        invoice.isReminder -> stringResource(R.string.reminder)
+                        invoice.parentType == "CREDIT" -> stringResource(R.string.credits)
+                        else -> invoice.parentType
+                    },
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
@@ -377,7 +416,7 @@ fun InvoiceItemDesign(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = currencyFormatter.format(invoice.amount).replace("€", ""),
+                    text = currencyFormatter.format(InvoiceChains.remaining(invoice)).replace("€", ""),
                     style = MaterialTheme.typography.titleLarge,
                     color = if (invoice.status == InvoiceStatus.OVERDUE || invoice.status == InvoiceStatus.COLLECTION) MaterialTheme.colorScheme.error else Color.Unspecified
                 )

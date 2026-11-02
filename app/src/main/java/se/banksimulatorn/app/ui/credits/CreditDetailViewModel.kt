@@ -2,67 +2,50 @@ package se.banksimulatorn.app.ui.credits
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import se.banksimulatorn.app.data.BankDao
 import se.banksimulatorn.app.data.CreditCard
+import se.banksimulatorn.app.data.Invoice
 import se.banksimulatorn.app.data.RevolvingCreditAccount
 import se.banksimulatorn.app.data.Transaction
-import se.banksimulatorn.app.data.Invoice
 
 class CreditDetailViewModel(
     private val revolvingAccountId: Int,
     private val bankDao: BankDao
 ) : ViewModel() {
 
-    private val _creditCard = MutableStateFlow<CreditCard?>(null)
-    val creditCard: StateFlow<CreditCard?> = _creditCard.asStateFlow()
+    val creditCard: StateFlow<CreditCard?> = bankDao.getAllCreditCards()
+        .map { cards -> cards.find { it.linkedCreditAccountId == revolvingAccountId } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
-    private val _revolvingAccount = MutableStateFlow<RevolvingCreditAccount?>(null)
-    val revolvingAccount: StateFlow<RevolvingCreditAccount?> = _revolvingAccount.asStateFlow()
+    // Observed rather than loaded once, so used credit, interest and the available
+    // amount follow date changes, purchases and payments without leaving the screen.
+    val revolvingAccount: StateFlow<RevolvingCreditAccount?> = bankDao.observeRevolvingCreditById(revolvingAccountId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val invoices: StateFlow<List<Invoice>> = _revolvingAccount
-        .flatMapLatest { account ->
-            if (account == null) kotlinx.coroutines.flow.flowOf(emptyList())
-            else bankDao.getInvoicesForAccount(account.id)
-        }
+    val invoices: StateFlow<List<Invoice>> = bankDao.getInvoicesForAccount(revolvingAccountId)
+        .map { list -> list.filter { it.parentType == "CREDIT" } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val transactions: StateFlow<List<Transaction>> = _revolvingAccount
-        .flatMapLatest { account ->
-            if (account == null) kotlinx.coroutines.flow.flowOf(emptyList())
-            else bankDao.getTransactionsForRevolvingCredit(account.id)
-        }
+    val transactions: StateFlow<List<Transaction>> = bankDao.getTransactionsForRevolvingCredit(revolvingAccountId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            val account = bankDao.getRevolvingCreditById(revolvingAccountId)
-            _revolvingAccount.value = account
-            
-            // Find a card linked to this revolving account
-            bankDao.getAllCreditCards().collect { cards ->
-                _creditCard.value = cards.find { it.linkedCreditAccountId == revolvingAccountId }
-            }
-        }
-    }
 }

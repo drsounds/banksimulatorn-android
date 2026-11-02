@@ -20,6 +20,10 @@ interface BankDao {
     @Query("SELECT * FROM accounts WHERE deletedAt IS NULL AND closedAt IS NULL")
     suspend fun getAllAccountsSync(): List<Account>
 
+    /** Emits again whenever the account changes, so detail screens stay current. */
+    @Query("SELECT * FROM accounts WHERE id = :id AND deletedAt IS NULL AND closedAt IS NULL")
+    fun observeAccountById(id: Int): Flow<Account?>
+
     @Query("SELECT * FROM accounts WHERE closedAt IS NOT NULL")
     fun getClosedAccounts(): Flow<List<Account>>
 
@@ -41,6 +45,9 @@ interface BankDao {
 
     @Query("SELECT * FROM revolving_credit_accounts WHERE deletedAt IS NULL AND closedAt IS NULL")
     suspend fun getAllRevolvingCreditsSync(): List<RevolvingCreditAccount>
+
+    @Query("SELECT * FROM revolving_credit_accounts WHERE id = :id AND deletedAt IS NULL AND closedAt IS NULL")
+    fun observeRevolvingCreditById(id: Int): Flow<RevolvingCreditAccount?>
 
     @Query("SELECT * FROM revolving_credit_accounts WHERE closedAt IS NOT NULL")
     fun getClosedRevolvingCredits(): Flow<List<RevolvingCreditAccount>>
@@ -66,6 +73,9 @@ interface BankDao {
 
     @Query("SELECT * FROM loans WHERE closedAt IS NULL AND deletedAt IS NULL")
     suspend fun getAllLoansSync(): List<Loan>
+
+    @Query("SELECT * FROM loans WHERE id = :id AND closedAt IS NULL AND deletedAt IS NULL")
+    fun observeLoanById(id: Int): Flow<Loan?>
 
     @Query("SELECT * FROM loans WHERE closedAt IS NOT NULL")
     fun getClosedLoans(): Flow<List<Loan>>
@@ -104,6 +114,9 @@ interface BankDao {
 
     @Query("SELECT * FROM invoices WHERE status = 'PENDING' AND deletedAt IS NULL")
     suspend fun getPendingInvoicesSync(): List<Invoice>
+
+    @Query("SELECT * FROM invoices WHERE parentId = :parentId AND parentType = :parentType AND deletedAt IS NULL")
+    suspend fun getInvoicesForParentSync(parentId: Int, parentType: String): List<Invoice>
 
     @Insert
     suspend fun insertInvoice(invoice: Invoice)
@@ -177,7 +190,7 @@ interface BankDao {
     @Query("SELECT * FROM transactions WHERE status = 'BLOCKED' AND deletedAt IS NULL")
     suspend fun getBlockedTransactionsSync(): List<Transaction>
 
-    @Query("SELECT * FROM transactions WHERE type = 'INTEREST' AND timestamp > :timestamp")
+    @Query("SELECT * FROM transactions WHERE type IN ('INTEREST', 'FEE') AND timestamp > :timestamp AND deletedAt IS NULL")
     suspend fun getFutureInterestTransactions(timestamp: Long): List<Transaction>
 
     @Query("SELECT * FROM transactions WHERE status = 'COMPLETED' AND (chargedAt > :timestamp OR timestamp > :timestamp)")
@@ -236,6 +249,66 @@ interface BankDao {
         updateRevolvingCredit(revolving.copy(
             pendingAuthorizations = revolving.pendingAuthorizations - absAmount
         ))
+    }
+
+    /**
+     * Pays [amount] of an invoice from a bank account, all in one database transaction.
+     * The amount is capped at what is left on the invoice. For a credit card invoice
+     * only the part that covers used credit lowers the credit line's debt; the rest
+     * covers reminder fees and late interest, which never were part of the used credit.
+     * Paying an invoice or reminder in full marks every invoice for the same debt paid.
+     *
+     * @return the amount actually paid.
+     */
+    @RoomTransaction
+    suspend fun payInvoice(invoiceId: Int, accountId: Int, amount: Double, timestamp: Long): Double {
+        val invoice = getInvoiceById(invoiceId) ?: throw IllegalStateException("Invoice not found")
+        val account = getAccountById(accountId) ?: throw IllegalStateException("Account not found")
+        val payment = InvoicePayments.cappedPayment(invoice, amount)
+        if (payment <= 0.0) throw IllegalArgumentException("Nothing to pay")
+        if (account.balance < payment) throw IllegalStateException("Insufficient funds on selected account")
+
+        insertTransaction(Transaction(
+            accountId = accountId,
+            amount = -payment,
+            timestamp = timestamp,
+            description = "Payment of invoice #${invoice.id}",
+            type = TransactionType.WITHDRAWAL,
+            status = TransactionStatus.COMPLETED
+        ))
+        updateAccount(account.copy(balance = account.balance - payment))
+
+        if (invoice.parentType == "CREDIT") {
+            val credit = getRevolvingCreditById(invoice.parentId)
+            if (credit != null) {
+                val reduction = InvoicePayments.creditReduction(credit.usedCredit, payment)
+                if (reduction > 0.0) {
+                    insertTransaction(Transaction(
+                        revolvingCreditAccountId = credit.id,
+                        amount = reduction,
+                        timestamp = timestamp,
+                        description = "Payment received",
+                        type = TransactionType.DEPOSIT,
+                        status = TransactionStatus.COMPLETED
+                    ))
+                    updateRevolvingCredit(credit.copy(usedCredit = credit.usedCredit - reduction))
+                }
+            }
+        }
+
+        val paidAmount = invoice.paidAmount + payment
+        val fullyPaid = InvoicePayments.isFullyPaid(invoice.amount, paidAmount)
+        updateInvoice(invoice.copy(
+            paidAmount = paidAmount,
+            status = if (fullyPaid) InvoiceStatus.PAID else invoice.status
+        ))
+        if (fullyPaid) {
+            val siblings = getInvoicesForParentSync(invoice.parentId, invoice.parentType)
+            InvoiceChains.relatedChain(invoice, siblings)
+                .filter { it.id != invoice.id && it.status != InvoiceStatus.PAID }
+                .forEach { updateInvoice(it.copy(status = InvoiceStatus.PAID)) }
+        }
+        return payment
     }
 
     /**

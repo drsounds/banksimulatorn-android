@@ -70,11 +70,11 @@ fun LoanDetailScreen(
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.balance), style = MaterialTheme.typography.bodyLarge)
-                                Text("-" + currencyFormatter.format(l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                                Text(currencyFormatter.format(0.0 - l.balance).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.pending_interest), style = MaterialTheme.typography.bodyLarge)
-                                Text("-" + currencyFormatter.format(l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
+                                Text(currencyFormatter.format(0.0 - l.pendingInterest).replace("€", ""), style = MaterialTheme.typography.bodyLarge, color = Color(0xFFBA1A1A))
                             }
                         }
                     }
